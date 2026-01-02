@@ -1,1003 +1,620 @@
-import React, { useState } from "react";
-import { FaHeart, FaSearch, FaBars, FaTimes, FaShoppingCart, FaUser, FaStar, FaTruck, FaLeaf, FaShieldAlt, FaRecycle } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
-import tomoto from '../assets/tomoto.jpg'; // ✅ Your logo
-import Broccoli from '../assets/Broccoli.jpeg';
-import coriander from '../assets/Coriander.jpg';
-import Beetroot from '../assets/Fresh Beetroot.avif';
-import Cabbage from '../assets/Fresh Cabbage.webp';
-import Cucumber from '../assets/Fresh Cucumber.jpg';
-import Garlic from '../assets/Fresh Garlic.webp';
-import Ginger from '../assets/Fresh Ginger.jpeg';
-import Grapes from '../assets/Fresh Grapes.jpeg';
-import Beans from '../assets/Fresh Green Beans.jpg';
-import Chilies from '../assets/Fresh Green Chilies.webp';
-import Peas from '../assets/Fresh Green Peas.jpeg';
-import Lemons from '../assets/Fresh Lemons.webp';
-import Mushrooms from '../assets/Fresh Mushrooms.jpg';
-import Pomegranate from '../assets/Fresh Pomegranate.jpeg';
-import Radish from '../assets/Fresh Radish.jpg';
-import Peppers from '../assets/Green Bell Peppers.jpeg';
-import Kiwi from '../assets/kiwi.jpeg';
+import React, { useState, useEffect } from "react";
+import { FaSearch, FaBars, FaTimes, FaFacebook, FaTwitter, FaInstagram, FaYoutube, FaWhatsapp, FaPhone, FaEnvelope, FaMapMarkerAlt, FaCalendarAlt, FaRupeeSign, FaUser, FaTicketAlt, FaBullhorn, FaDownload, FaNewspaper } from "react-icons/fa";
+import { Helmet } from "react-helmet-async";
+import { Link } from "react-router-dom";
 
+const KeralaLottery = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [currentDate] = useState(new Date().toLocaleDateString('en-IN', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  }));
 
-const VegetableEcommerce = () => {
-  const categories = [
-    "All", "Fresh Vegetables", "Leafy Greens", "Organic Fruits", "Root Vegetables", 
-    "Seasonal Specials", "Exotic Vegetables", "Herbs", "Local Produce", "Premium Quality"
-  ];
-
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showMobileSearch, setShowMobileSearch] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [cart, setCart] = useState([]);
-  
-  // Use navigate hook for redirection
-  const navigate = useNavigate();
-
-  // Sample product data with HD image URLs
-  const [products, setProducts] = useState([
+  // Sample lottery results data
+  const [lotteryResults, setLotteryResults] = useState([
     {
       id: 1,
-      title: "Fresh Organic Tomatoes",
-      category: "Fresh Vegetables",
-      image: tomoto,
-      price: 45,
-      originalPrice: 60,
-      unit: "kg",
-      rating: 4.5,
-      reviews: 120,
-      description: "Fresh organic tomatoes grown locally with no pesticides",
-      inStock: true, // Change to false to mark out of stock
-      discount: 25,
-      isFavorite: false,
+      name: "Suvarna Keralam",
+      date: "02-01-2026",
+      result: "RA 345678",
+      prize: "₹75 Lakhs",
+      status: "Active"
     },
     {
       id: 2,
-      title: "Premium Potatoes",
-      category: "Root Vegetables",
-      image: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&h=300&fit=crop",
-      price: 30,
-      originalPrice: 35,
-      unit: "kg",
-      rating: 4.2,
-      reviews: 89,
-      description: "Fresh potatoes perfect for all your cooking needs",
-      inStock: true,
-      discount: 14,
-      isFavorite: false,
+      name: "Karunya Plus",
+      date: "01-01-2026",
+      result: "RB 456789",
+      prize: "₹1 Crore",
+      status: "Completed"
     },
     {
       id: 3,
-      title: "Fresh Spinach Leaves",
-      category: "Leafy Greens",
-      image: "https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400&h=300&fit=crop",
-      price: 25,
-      originalPrice: 30,
-      unit: "bunch",
-      rating: 4.7,
-      reviews: 156,
-      description: "Nutrient-rich fresh spinach leaves, packed with iron",
-      inStock: true,
-      discount: 17,
-      isFavorite: false,
+      name: "Bhagvathara",
+      date: "31-12-2025",
+      result: "RC 567890",
+      prize: "₹50 Lakhs",
+      status: "Completed"
     },
     {
       id: 4,
-      title: "Organic Apples",
-      category: "Organic Fruits",
-      image: "https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=400&h=300&fit=crop",
-      price: 80,
-      originalPrice: 100,
-      unit: "kg",
-      rating: 4.8,
-      reviews: 200,
-      description: "Sweet and crunchy organic apples",
-      inStock: true,
-      discount: 20,
-      isFavorite: false,
-    },
-    {
-      id: 5,
-      title: "Fresh Coriander",
-      category: "Herbs",
-      image: coriander,
-      price: 10,
-      originalPrice: 12,
-      unit: "bunch",
-      rating: 4.3,
-      reviews: 67,
-      description: "Aromatic fresh coriander for your dishes",
-      inStock: true,
-      discount: 17,
-      isFavorite: false,
-    },
-    {
-      id: 6,
-      title: "Broccoli",
-      category: "Exotic Vegetables",
-      image: Broccoli,
-      price: 60,
-      originalPrice: 75,
-      unit: "piece",
-      rating: 4.4,
-      reviews: 98,
-      description: "Fresh green broccoli rich in nutrients",
-      inStock: true,
-      discount: 20,
-      isFavorite: false,
-    },
-    {
-      id: 7,
-      title: "Carrots",
-      category: "Root Vegetables",
-      image: "https://images.unsplash.com/photo-1445282768818-728615cc910a?w=400&h=300&fit=crop",
-      price: 35,
-      originalPrice: 40,
-      unit: "kg",
-      rating: 4.6,
-      reviews: 134,
-      description: "Sweet and crunchy fresh carrots",
-      inStock: true,
-      discount: 13,
-      isFavorite: false,
-    },
-    {
-      id: 8,
-      title: "Bananas",
-      category: "Organic Fruits",
-      image: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400&h=300&fit=crop",
-      price: 50,
-      originalPrice: 60,
-      unit: "dozen",
-      rating: 4.5,
-      reviews: 178,
-      description: "Fresh ripe bananas, perfect for daily consumption",
-      inStock: true,
-      discount: 17,
-      isFavorite: false,
-    },
-    // NEW VEGETABLES AND FRUITS ADDED
-    {
-      id: 9,
-      title: "Fresh Cauliflower",
-      category: "Fresh Vegetables",
-      image: "https://images.unsplash.com/photo-1613743983303-b3e89f8a2b80?w=400&h=300&fit=crop",
-      price: 40,
-      originalPrice: 50,
-      unit: "piece",
-      rating: 4.3,
-      reviews: 95,
-      description: "Fresh white cauliflower, perfect for curries",
-      inStock: true,
-      discount: 20,
-      isFavorite: false,
-    },
-    {
-      id: 10,
-      title: "Green Bell Peppers",
-      category: "Fresh Vegetables",
-      image: Peppers,
-      price: 65,
-      originalPrice: 80,
-      unit: "kg",
-      rating: 4.4,
-      reviews: 78,
-      description: "Crisp green bell peppers for cooking",
-      inStock: true,
-      discount: 19,
-      isFavorite: false,
-    },
-    {
-      id: 11,
-      title: "Fresh Onions",
-      category: "Root Vegetables",
-      image: "https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?w=400&h=300&fit=crop",
-      price: 28,
-      originalPrice: 35,
-      unit: "kg",
-      rating: 4.2,
-      reviews: 145,
-      description: "Fresh red onions for daily cooking",
-      inStock: true,
-      discount: 20,
-      isFavorite: false,
-    },
-    {
-      id: 12,
-      title: "Fresh Garlic",
-      category: "Herbs",
-      image: Garlic,
-      price: 120,
-      originalPrice: 150,
-      unit: "kg",
-      rating: 4.6,
-      reviews: 89,
-      description: "Fresh garlic bulbs with strong flavor",
-      inStock: true,
-      discount: 20,
-      isFavorite: false,
-    },
-    {
-      id: 13,
-      title: "Fresh Green Beans",
-      category: "Fresh Vegetables",
-      image: Beans,
-      price: 55,
-      originalPrice: 65,
-      unit: "kg",
-      rating: 4.5,
-      reviews: 67,
-      description: "Tender green beans, rich in fiber",
-      inStock: true,
-      discount: 15,
-      isFavorite: false,
-    },
-    {
-      id: 14,
-      title: "Fresh Cabbage",
-      category: "Leafy Greens",
-      image: Cabbage,
-      price: 20,
-      originalPrice: 25,
-      unit: "piece",
-      rating: 4.1,
-      reviews: 112,
-      description: "Fresh green cabbage for salads and cooking",
-      inStock: true,
-      discount: 20,
-      isFavorite: false,
-    },
-    {
-      id: 15,
-      title: "Fresh Green Peas",
-      category: "Fresh Vegetables",
-      image: Peas,
-      price: 75,
-      originalPrice: 90,
-      unit: "kg",
-      rating: 4.7,
-      reviews: 98,
-      description: "Sweet green peas, freshly shelled",
-      inStock: true,
-      discount: 17,
-      isFavorite: false,
-    },
-    {
-      id: 16,
-      title: "Fresh Cucumber",
-      category: "Fresh Vegetables",
-      image: Cucumber,
-      price: 15,
-      originalPrice: 20,
-      unit: "piece",
-      rating: 4.3,
-      reviews: 134,
-      description: "Fresh crispy cucumber for salads",
-      inStock: true,
-      discount: 25,
-      isFavorite: false,
-    },
-    {
-      id: 17,
-      title: "Fresh Radish",
-      category: "Root Vegetables",
-      image: Radish,
-      price: 25,
-      originalPrice: 30,
-      unit: "bunch",
-      rating: 4.0,
-      reviews: 56,
-      description: "Fresh red radish with peppery flavor",
-      inStock: true,
-      discount: 17,
-      isFavorite: false,
-    },
-    {
-      id: 18,
-      title: "Fresh Beetroot",
-      category: "Root Vegetables",
-      image: Beetroot,
-      price: 35,
-      originalPrice: 45,
-      unit: "kg",
-      rating: 4.4,
-      reviews: 78,
-      description: "Fresh beetroot, rich in nutrients",
-      inStock: true,
-      discount: 22,
-      isFavorite: false,
-    },
-    {
-      id: 19,
-      title: "Fresh Ginger",
-      category: "Herbs",
-      image: Ginger,
-      price: 110,
-      originalPrice: 130,
-      unit: "kg",
-      rating: 4.5,
-      reviews: 92,
-      description: "Fresh ginger root with strong aroma",
-      inStock: true,
-      discount: 15,
-      isFavorite: false,
-    },
-    {
-      id: 20,
-      title: "Fresh Green Chilies",
-      category: "Herbs",
-      image: Chilies,
-      price: 40,
-      originalPrice: 50,
-      unit: "100g",
-      rating: 4.2,
-      reviews: 45,
-      description: "Spicy green chilies for cooking",
-      inStock: true,
-      discount: 20,
-      isFavorite: false,
-    },
-    {
-      id: 21,
-      title: "Fresh Lemons",
-      category: "Organic Fruits",
-      image: Lemons,
-      price: 30,
-      originalPrice: 40,
-      unit: "dozen",
-      rating: 4.6,
-      reviews: 167,
-      description: "Fresh juicy lemons, rich in vitamin C",
-      inStock: true,
-      discount: 25,
-      isFavorite: false,
-    },
-    {
-      id: 22,
-      title: "Fresh Oranges",
-      category: "Organic Fruits",
-      image: "https://images.unsplash.com/photo-1547514701-42782101795e?w=400&h=300&fit=crop",
-      price: 70,
-      originalPrice: 85,
-      unit: "kg",
-      rating: 4.7,
-      reviews: 189,
-      description: "Sweet and juicy oranges",
-      inStock: true,
-      discount: 18,
-      isFavorite: false,
-    },
-    {
-      id: 23,
-      title: "Fresh Grapes",
-      category: "Organic Fruits",
-      image: Grapes,
-      price: 90,
-      originalPrice: 110,
-      unit: "kg",
-      rating: 4.8,
-      reviews: 156,
-      description: "Sweet seedless green grapes",
-      inStock: true,
-      discount: 18,
-      isFavorite: false,
-    },
-    {
-      id: 24,
-      title: "Fresh Pomegranate",
-      category: "Organic Fruits",
-      image: Pomegranate,
-      price: 120,
-      originalPrice: 150,
-      unit: "kg",
-      rating: 4.9,
-      reviews: 134,
-      description: "Fresh juicy pomegranate with red seeds",
-      inStock: true,
-      discount: 20,
-      isFavorite: false,
-    },
-    {
-      id: 25,
-      title: "Fresh Mangoes",
-      category: "Seasonal Specials",
-      image: "https://images.unsplash.com/photo-1553279768-865429fa0078?w=400&h=300&fit=crop",
-      price: 100,
-      originalPrice: 130,
-      unit: "kg",
-      rating: 4.9,
-      reviews: 245,
-      description: "Sweet alphonso mangoes, seasonal special",
-      inStock: true,
-      discount: 23,
-      isFavorite: false,
-    },
-    {
-      id: 26,
-      title: "Fresh Watermelon",
-      category: "Seasonal Specials",
-      image: Lemons,
-      price: 25,
-      originalPrice: 35,
-      unit: "kg",
-      rating: 4.7,
-      reviews: 178,
-      description: "Sweet and juicy watermelon",
-      inStock: true,
-      discount: 29,
-      isFavorite: false,
-    },
-    {
-      id: 27,
-      title: "Fresh Pineapple",
-      category: "Exotic Vegetables",
-      image: "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=400&h=300&fit=crop",
-      price: 45,
-      originalPrice: 60,
-      unit: "piece",
-      rating: 4.6,
-      reviews: 134,
-      description: "Sweet and tangy fresh pineapple",
-      inStock: true,
-      discount: 25,
-      isFavorite: false,
-    },
-    {
-      id: 28,
-      title: "Fresh Avocado",
-      category: "Exotic Vegetables",
-      image: "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=400&h=300&fit=crop",
-      price: 150,
-      originalPrice: 180,
-      unit: "piece",
-      rating: 4.5,
-      reviews: 89,
-      description: "Creamy ripe avocado, perfect for salads",
-      inStock: true,
-      discount: 17,
-      isFavorite: false,
-    },
-    {
-      id: 29,
-      title: "Fresh Mushrooms",
-      category: "Exotic Vegetables",
-      image: Mushrooms,
-      price: 60,
-      originalPrice: 100,
-      unit: "200g",
-      rating: 4.4,
-      reviews: 67,
-      description: "Fresh white button mushrooms",
-      inStock: true,
-      discount: 15,
-      isFavorite: false,
-    },
-    {
-      id: 30,
-      title: "Fresh Zucchini",
-      category: "Exotic Vegetables",
-      image: "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400&h=300&fit=crop",
-      price: 65,
-      originalPrice: 80,
-      unit: "kg",
-      rating: 4.3,
-      reviews: 45,
-      description: "Fresh green zucchini for healthy cooking",
-      inStock: false,
-      discount: 19,
-      isFavorite: false,
-    },
-    // OUT OF STOCK EXAMPLES (Change inStock to false manually)
-    {
-      id: 31,
-      title: "Fresh Strawberries",
-      category: "Seasonal Specials",
-      image: "https://images.unsplash.com/photo-1464454709131-ffd692591ee5?w=400&h=300&fit=crop",
-      price: 120,
-      originalPrice: 150,
-      unit: "250g",
-      rating: 4.8,
-      reviews: 156,
-      description: "Fresh sweet strawberries",
-      inStock: false, // OUT OF STOCK - Change this to true when available
-      discount: 20,
-      isFavorite: false,
-    },
-    {
-      id: 32,
-      title: "Fresh Kiwi",
-      category: "Exotic Vegetables",
-      image: Kiwi,
-      price: 95,
-      originalPrice: 120,
-      unit: "dozen",
-      rating: 4.6,
-      reviews: 89,
-      description: "Fresh green kiwi fruits",
-      inStock: false, // OUT OF STOCK - Change this to true when available
-      discount: 21,
-      isFavorite: false,
+      name: "Sthree Sakthi",
+      date: "30-12-2025",
+      result: "RD 678901",
+      prize: "₹25 Lakhs",
+      status: "Completed"
     }
   ]);
 
-  // Function to manually toggle stock status
-  const toggleStockStatus = (id) => {
-    setProducts(products.map(product =>
-      product.id === id
-        ? { ...product, inStock: !product.inStock }
-        : product
-    ));
-  };
-
-  const toggleFavorite = (id) => {
-    setProducts(products.map(product =>
-      product.id === id
-        ? { ...product, isFavorite: !product.isFavorite }
-        : product
-    ));
-  };
-
-  const addToCart = (product) => {
-    if (!product.inStock) {
-      alert(`${product.title} is currently out of stock!`);
-      return;
+  const [bumperLotteries, setBumperLotteries] = useState([
+    {
+      id: 1,
+      name: "Onam Bumper 2025",
+      prize: "₹12 Crore",
+      drawDate: "15-08-2025",
+      status: "Upcoming"
+    },
+    {
+      id: 2,
+      name: "Christmas-New Year Bumper",
+      prize: "₹15 Crore",
+      drawDate: "25-12-2025",
+      status: "Active"
+    },
+    {
+      id: 3,
+      name: "Vishu Bumper 2026",
+      prize: "₹10 Crore",
+      drawDate: "14-04-2026",
+      status: "Announced"
     }
-    
-    setCart(prevCart => {
-      const existingItem = prevCart.find(item => item.id === product.id);
-      if (existingItem) {
-        return prevCart.map(item =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      } else {
-        return [...prevCart, { ...product, quantity: 1 }];
-      }
-    });
-    
-    // Navigate to order page after adding to cart
-    navigate('/order');
-  };
+  ]);
 
-  const getCartItemsCount = () => {
-    return cart.reduce((count, item) => count + item.quantity, 0);
-  };
-
-  // Filter products based on category and search query
-  const filteredProducts = products.filter(product => {
-    const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
-    const matchesSearch = searchQuery === "" || 
-      product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
-
-  const features = [
+  const [news, setNews] = useState([
     {
-      icon: <FaTruck className="text-2xl" />,
-      title: "Free Delivery",
-      description: "On orders above ₹499"
+      id: 1,
+      title: "Kerala Lottery introduces new digital ticket system",
+      date: "28-12-2025",
+      category: "News"
     },
     {
-      icon: <FaLeaf className="text-2xl" />,
-      title: "Farm Fresh",
-      description: "Direct from local farms"
+      id: 2,
+      title: "Record jackpot prize announced for Christmas Bumper",
+      date: "25-12-2025",
+      category: "Announcement"
     },
     {
-      icon: <FaShieldAlt className="text-2xl" />,
-      title: "Quality Checked",
-      description: "100% quality assurance"
+      id: 3,
+      title: "Security enhanced for lottery draw procedures",
+      date: "22-12-2025",
+      category: "Security"
     },
     {
-      icon: <FaRecycle className="text-2xl" />,
-      title: "Eco Friendly",
-      description: "Sustainable packaging"
+      id: 4,
+      title: "Online ticket booking now available for all lotteries",
+      date: "20-12-2025",
+      category: "Technology"
     }
+  ]);
+
+  const navItems = [
+    { name: "Home", path: "/" },
+    { name: "Samrudhi", path: "/samrudhi" },
+    { name: "Bhagvathara", path: "/bhagvathara" },
+    { name: "Sthree Sakthi", path: "/sthreesakthi" },
+    { name: "Dhamalekshmi", path: "/dhamalekshmi" },
+    { name: "Karunya Plus", path: "/karunya-plus" },
+    { name: "Suvarna Keralam", path: "/suvarna-keralam" },
+    { name: "Karunya", path: "/karunya" },
+    { name: "Bumper Lottery", path: "/bumper" },
+    { name: "Downloads", path: "/downloads" }
   ];
 
+  // SEO Meta tags
+  const seoConfig = {
+    title: "Official Kerala Lottery Results | Kerala State Lotteries 2025-2026",
+    description: "Get official Kerala Lottery results, draw dates, prize details, and online ticket information. Check Suvarna Keralam, Karunya Plus, Bumper lottery results daily.",
+    keywords: "kerala lottery, lottery results, kerala state lottery, suvarna keralam, karunya plus, bumper lottery, lottery tickets",
+    author: "Kerala State Lottery Department",
+    canonical: "https://www.keralalotteries.net"
+  };
+
+  useEffect(() => {
+    // Scroll to top on route change
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
-      {/* Header */}
-      <header className="w-full bg-green-600 px-3 py-2 sm:px-4 sm:py-3 md:px-6 md:py-4 flex items-center justify-between sticky top-0 z-50 shadow-lg">
-        {/* Left Section - Menu & Logo */}
-        <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 flex-1">
-          <button 
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 rounded-lg hover:bg-green-700 transition-colors lg:hidden text-white"
-            aria-label="Toggle menu"
-          >
-            <FaBars className="text-lg sm:text-xl" />
-          </button>
-          
-          <Link to="/" className="flex items-center space-x-2 min-w-0">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-green-600 font-bold text-sm">VG</span>
+    <>
+      {/* SEO Head Section */}
+      <Helmet>
+        <title>{seoConfig.title}</title>
+        <meta name="description" content={seoConfig.description} />
+        <meta name="keywords" content={seoConfig.keywords} />
+        <meta name="author" content={seoConfig.author} />
+        <link rel="canonical" href={seoConfig.canonical} />
+        
+        {/* Open Graph Meta Tags */}
+        <meta property="og:title" content={seoConfig.title} />
+        <meta property="og:description" content={seoConfig.description} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={seoConfig.canonical} />
+        <meta property="og:image" content="https://www.keralalotteries.net/og-image.jpg" />
+        <meta property="og:site_name" content="Kerala Lotteries" />
+        
+        {/* Twitter Card Meta Tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={seoConfig.title} />
+        <meta name="twitter:description" content={seoConfig.description} />
+        <meta name="twitter:image" content="https://www.keralalotteries.net/twitter-card.jpg" />
+        
+        {/* Additional Meta Tags */}
+        <meta name="robots" content="index, follow" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta httpEquiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="language" content="English" />
+        <meta name="revisit-after" content="7 days" />
+        
+        {/* Schema.org JSON-LD */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "GovernmentOrganization",
+            "name": "Kerala State Lottery Department",
+            "url": "https://www.keralalotteries.net",
+            "logo": "https://www.keralalotteries.net/logo.png",
+            "description": seoConfig.description,
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "telephone": "+91-471-2321132",
+              "contactType": "customer service",
+              "email": "info@keralalotteries.net",
+              "areaServed": "IN",
+              "availableLanguage": ["en", "ml"]
+            }
+          })}
+        </script>
+      </Helmet>
+
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-gray-800">
+        {/* Top Announcement Bar */}
+        <div className="bg-red-600 text-white text-sm md:text-base py-2 px-4">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
+            <div className="flex items-center gap-2 mb-2 md:mb-0">
+              <FaBullhorn className="animate-pulse" />
+              <span className="font-semibold">Official Kerala State Lottery Website</span>
             </div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold truncate text-white">VeggieMart</h1>
-          </Link>
-        </div>
-
-        {/* Desktop Search Bar */}
-        <div className="hidden md:block flex-1 max-w-2xl mx-4">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search vegetables, fruits, leafy greens..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white text-gray-900 px-4 py-2 pl-10 pr-4 rounded-full border border-green-300 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20"
-            />
-            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          </div>
-        </div>
-
-        {/* Right Section - Cart & User */}
-        <div className="flex items-center space-x-3 sm:space-x-4">
-          {/* Mobile Search Button */}
-          <button 
-            onClick={() => setShowMobileSearch(!showMobileSearch)}
-            className="md:hidden p-2 rounded-lg hover:bg-green-700 transition-colors flex-shrink-0 text-white"
-            aria-label="Search"
-          >
-            <FaSearch className="text-lg sm:text-xl" />
-          </button>
-
-          {/* Cart */}
-          <Link to="/order" className="relative">
-            <button className="p-2 rounded-lg hover:bg-green-700 transition-colors text-white relative">
-              <FaShoppingCart className="text-lg sm:text-xl" />
-              {getCartItemsCount() > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {getCartItemsCount()}
-                </span>
-              )}
-            </button>
-          </Link>
-
-          {/* User */}
-          <button className="p-2 rounded-lg hover:bg-green-700 transition-colors text-white">
-            <FaUser className="text-lg sm:text-xl" />
-          </button>
-        </div>
-      </header>
-
-      {/* Mobile Search Bar */}
-      {showMobileSearch && (
-        <div className="md:hidden px-3 py-2 bg-green-500 border-b border-green-400 sticky top-16 z-40">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search vegetables, fruits, leafy greens..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white text-gray-900 px-4 py-3 pl-10 pr-4 rounded-lg border border-green-300 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 text-base"
-              autoFocus
-            />
-            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <button 
-              onClick={() => setShowMobileSearch(false)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              <FaTimes className="text-lg" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div className="flex flex-col lg:flex-row">
-        {/* Sidebar for Desktop */}
-        <div className="hidden lg:block w-64 bg-white h-[calc(100vh-80px)] sticky top-20 overflow-y-auto flex-shrink-0 border-r border-gray-200">
-          <div className="p-4 border-b border-gray-200">
-            <h2 className="text-lg font-bold text-gray-800">Categories</h2>
-          </div>
-          <div className="space-y-1 p-2">
-            {categories.map((cat, index) => (
-              <button
-                key={index}
-                onClick={() => setSelectedCategory(cat)}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 ${
-                  selectedCategory === cat
-                    ? "bg-green-600 text-white font-bold shadow-lg"
-                    : "text-gray-700 hover:bg-green-50 hover:text-green-700"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-          
-          {/* Stock Management Section */}
-          <div className="p-4 border-t border-gray-200 mt-4">
-            <h2 className="text-lg font-bold text-gray-800 mb-3">Stock Management</h2>
-            <p className="text-sm text-gray-600 mb-3">
-              Click on products below to toggle stock status:
-            </p>
-            <div className="space-y-2 max-h-60 overflow-y-auto">
-              {products.slice(0, 8).map(product => (
-                <div
-                  key={product.id}
-                  onClick={() => toggleStockStatus(product.id)}
-                  className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
-                    product.inStock ? 'bg-green-50' : 'bg-red-50'
-                  }`}
-                >
-                  <span className="text-sm font-medium truncate flex-1">{product.title}</span>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    product.inStock 
-                      ? 'bg-green-200 text-green-800' 
-                      : 'bg-red-200 text-red-800'
-                  }`}>
-                    {product.inStock ? 'In Stock' : 'Out of Stock'}
-                  </span>
-                </div>
-              ))}
+            <div className="flex items-center gap-4 text-xs md:text-sm">
+              <span className="flex items-center gap-1">
+                <FaCalendarAlt /> {currentDate}
+              </span>
+              <span className="hidden md:inline">|</span>
+              <span>Results Updated Daily</span>
             </div>
           </div>
         </div>
 
-        {/* Mobile Sidebar Overlay */}
-        {isSidebarOpen && (
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-            onClick={() => setIsSidebarOpen(false)}
-          ></div>
-        )}
-
-        {/* Mobile Sidebar */}
-        <div className={`fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white z-50 transform transition-transform duration-300 ease-in-out lg:hidden ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}>
-          <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-green-600">
-            <h2 className="text-xl font-bold text-white">Categories</h2>
-            <button 
-              onClick={() => setIsSidebarOpen(false)}
-              className="p-2 rounded-lg hover:bg-green-700 text-white"
-            >
-              <FaTimes className="text-lg" />
-            </button>
-          </div>
-          <div className="overflow-y-auto h-full pb-20">
-            {categories.map((cat, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setSelectedCategory(cat);
-                  setIsSidebarOpen(false);
-                }}
-                className={`w-full text-left px-4 py-4 border-b border-gray-100 transition-all duration-200 ${
-                  selectedCategory === cat
-                    ? "bg-green-600 text-white font-bold"
-                    : "text-gray-700 hover:bg-green-50"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <main className="flex-1 min-w-0">
-          {/* Hero Banner */}
-          <div className="bg-gradient-to-r from-green-500 to-green-600 text-white py-12 px-4 sm:px-6 md:px-8">
-            <div className="max-w-6xl mx-auto text-center">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4">
-                Fresh Vegetables & Fruits
-              </h1>
-              <p className="text-xl sm:text-2xl mb-8 opacity-90 max-w-2xl mx-auto">
-                Farm to table freshness delivered to your doorstep within hours
-              </p>
-              <Link to="/order">
-                <button className="bg-white text-green-600 px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-colors hover:scale-105 shadow-lg">
-                  Shop Now
-                </button>
-              </Link>
-            </div>
-          </div>
-
-          {/* Features Section */}
-          <div className="bg-white py-8 border-b border-gray-200">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {features.map((feature, index) => (
-                  <div key={index} className="text-center">
-                    <div className="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 text-green-600">
-                      {feature.icon}
-                    </div>
-                    <h3 className="font-bold text-gray-800 mb-1">{feature.title}</h3>
-                    <p className="text-gray-600 text-sm">{feature.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Horizontal Category Scroller - Mobile & Tablet */}
-          <div className="lg:hidden w-full overflow-x-auto bg-white sticky top-[72px] sm:top-[80px] z-30 scrollbar-hide border-b border-gray-200">
-            <div className="flex space-x-2 px-3 py-3">
-              {categories.map((cat, index) => (
+        {/* Main Header */}
+        <header className="sticky top-0 z-50 bg-white shadow-md">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              {/* Logo */}
+              <div className="flex items-center">
                 <button
-                  key={index}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 flex-shrink-0 ${
-                    selectedCategory === cat
-                      ? "bg-green-600 text-white font-bold shadow-md"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="lg:hidden p-2 rounded-md text-gray-700 hover:bg-gray-100 mr-2"
+                  aria-label="Toggle menu"
                 >
-                  {cat}
+                  <FaBars className="text-xl" />
                 </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Products Grid */}
-          <div className="p-4 sm:p-6 md:p-8">
-            <div className="max-w-6xl mx-auto">
-              {/* Category Header */}
-              <div className="mb-6 sm:mb-8 flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
-                    {selectedCategory === "All" ? "All Fresh Products" : selectedCategory}
-                    {searchQuery && ` for "${searchQuery}"`}
-                  </h2>
-                  <p className="text-gray-500 text-sm sm:text-base mt-1">
-                    {filteredProducts.length} products available
-                  </p>
-                </div>
-              </div>
-              
-              {/* Products Grid */}
-              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                {filteredProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    className="bg-white rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-200 group relative"
-                  >
-                    {/* Out of Stock Overlay */}
-                    {!product.inStock && (
-                      <div className="absolute inset-0 bg-black bg-opacity-60 z-10 flex items-center justify-center rounded-xl">
-                        <div className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-lg">
-                          Out of Stock
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className="relative overflow-hidden bg-green-50">
-                      {/* HD Image */}
-                      <img 
-                        src={product.image} 
-                        alt={product.title}
-                        className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110"
-                        onError={(e) => {
-                          e.target.src = "https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=400&h=300&fit=crop";
-                        }}
-                      />
-                      
-                      {/* Discount Badge */}
-                      {product.discount > 0 && (
-                        <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                          {product.discount}% OFF
-                        </div>
-                      )}
-                      
-                      {/* Favorite Button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(product.id);
-                        }}
-                        className="absolute top-3 right-3 bg-white bg-opacity-90 p-2 rounded-full hover:bg-opacity-100 transition-all duration-200 hover:scale-110 shadow-md z-20"
-                      >
-                        <FaHeart className={product.isFavorite ? "text-red-500" : "text-gray-400"} />
-                      </button>
-
-                      {/* Stock Toggle Button for Admin */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleStockStatus(product.id);
-                        }}
-                        className="absolute bottom-3 right-3 bg-blue-500 text-white p-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20"
-                        title="Toggle Stock Status"
-                      >
-                        {product.inStock ? 'In Stock' : 'Out of Stock'}
-                      </button>
-                    </div>
-                    
-                    <div className="p-4">
-                      <h3 className="font-bold text-gray-800 text-base line-clamp-2 group-hover:text-green-600 transition-colors mb-2 leading-tight">
-                        {product.title}
-                      </h3>
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                        {product.description}
-                      </p>
-                      
-                      {/* Price */}
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-xl font-bold text-green-600">₹{product.price}</span>
-                        {product.originalPrice > product.price && (
-                          <span className="text-sm text-gray-500 line-through">₹{product.originalPrice}</span>
-                        )}
-                        <span className="text-xs text-gray-500 ml-auto">/{product.unit}</span>
-                      </div>
-
-                      {/* Rating */}
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-1">
-                          <div className="flex text-yellow-400">
-                            <FaStar className="fill-current" />
-                            <FaStar className="fill-current" />
-                            <FaStar className="fill-current" />
-                            <FaStar className="fill-current" />
-                            <FaStar className={product.rating >= 4.5 ? "fill-current" : "text-gray-300"} />
-                          </div>
-                          <span className="text-xs text-gray-600 ml-1">({product.reviews})</span>
-                        </div>
-                      </div>
-
-                      {/* Add to Cart Button */}
-                      <button
-                        onClick={() => addToCart(product)}
-                        className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-200 ${
-                          product.inStock
-                            ? "bg-green-600 hover:bg-green-700 text-white hover:scale-105 shadow-md"
-                            : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                        }`}
-                        disabled={!product.inStock}
-                      >
-                        {product.inStock ? "Add to Cart" : "Out of Stock"}
-                      </button>
-                    </div>
+                <Link to="/" className="flex items-center space-x-2">
+                  <div className="w-10 h-10 bg-gradient-to-r from-green-600 to-yellow-500 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold text-lg">KL</span>
                   </div>
+                  <div>
+                    <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-green-600 to-yellow-500 bg-clip-text text-transparent">
+                      Kerala Lotteries
+                    </h1>
+                    <p className="text-xs text-gray-600">Official State Lottery</p>
+                  </div>
+                </Link>
+              </div>
+
+              {/* Desktop Navigation */}
+              <nav className="hidden lg:flex space-x-1">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.path}
+                    className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-green-600 hover:bg-gray-50 rounded-md transition-colors"
+                  >
+                    {item.name}
+                  </Link>
                 ))}
-              </div>
+              </nav>
 
-              {/* No Results */}
-              {filteredProducts.length === 0 && (
-                <div className="text-center py-16 sm:py-20 md:py-24">
-                  <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-4 bg-white rounded-full flex items-center justify-center border border-gray-200 shadow-lg">
-                    <FaSearch className="text-3xl sm:text-4xl text-gray-400" />
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">No products found</h3>
-                  <p className="text-gray-600 text-base max-w-md mx-auto">
-                    Try adjusting your search or filter to find what you're looking for.
-                  </p>
-                  <button 
-                    onClick={() => {
-                      setSearchQuery('');
-                      setSelectedCategory('All');
-                    }}
-                    className="mt-4 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
+              {/* Right Side Actions */}
+              <div className="flex items-center space-x-4">
+                {/* Search Button */}
+                <button
+                  onClick={() => setShowSearch(!showSearch)}
+                  className="p-2 rounded-full hover:bg-gray-100"
+                  aria-label="Search"
+                >
+                  <FaSearch className="text-gray-600" />
+                </button>
+
+                {/* User Account */}
+                <button className="hidden md:flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                  <FaUser />
+                  <span>My Account</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Mobile Search Bar */}
+            {showSearch && (
+              <div className="py-4 border-t border-gray-200">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search lottery results, draw dates, prize details..."
+                    className="w-full px-4 py-3 pl-12 pr-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    autoFocus
+                  />
+                  <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <button
+                    onClick={() => setShowSearch(false)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    Clear Filters
+                    <FaTimes />
                   </button>
                 </div>
-              )}
-            </div>
-          </div>
-        </main>
-      </div>
-
-      {/* Floating Cart Button */}
-      <Link to="/order">
-        <div className="fixed bottom-6 right-6 bg-green-600 text-white p-4 rounded-full shadow-2xl hover:bg-green-700 transition-colors hover:scale-110 z-40">
-          <div className="relative">
-            <FaShoppingCart className="text-xl" />
-            {getCartItemsCount() > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold">
-                {getCartItemsCount()}
-              </span>
+              </div>
             )}
           </div>
+
+          {/* Mobile Navigation Menu */}
+          {isMobileMenuOpen && (
+            <div className="lg:hidden border-t border-gray-200">
+              <div className="px-2 pt-2 pb-3 space-y-1 bg-white">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.path}
+                    className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-green-600 hover:bg-gray-50 rounded-md"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </header>
+
+        {/* Main Content */}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+          {/* Hero Section */}
+          <section className="mb-8 md:mb-12">
+            <div className="bg-gradient-to-r from-green-500 to-yellow-500 rounded-2xl overflow-hidden shadow-xl">
+              <div className="p-6 md:p-8 lg:p-12">
+                <div className="flex flex-col lg:flex-row items-center justify-between">
+                  <div className="lg:w-2/3 mb-8 lg:mb-0">
+                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4">
+                      Official Kerala Lottery Results 2025-2026
+                    </h2>
+                    <p className="text-white text-opacity-90 mb-6 text-lg">
+                      Check daily lottery results, prize details, and winning numbers for all Kerala State Lotteries
+                    </p>
+                    <div className="flex flex-wrap gap-4">
+                      <button className="bg-white text-green-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2">
+                        <FaTicketAlt /> Check Results
+                      </button>
+                      <button className="bg-yellow-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-yellow-600 transition-colors flex items-center gap-2">
+                        <FaRupeeSign /> Buy Tickets
+                      </button>
+                    </div>
+                  </div>
+                  <div className="lg:w-1/3 text-center lg:text-right">
+                    <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-6 inline-block">
+                      <div className="text-white mb-2">Today's Lottery</div>
+                      <div className="text-2xl md:text-3xl font-bold text-white mb-1">Suvarna Keralam</div>
+                      <div className="text-white mb-4">Draw Date: 02-01-2026</div>
+                      <div className="text-3xl md:text-4xl font-bold text-yellow-300 bg-black bg-opacity-30 py-2 px-4 rounded-lg">
+                        ₹75 LAKHS
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Today's Result Section */}
+          <section className="mb-10">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+              <div className="bg-green-600 text-white px-6 py-4">
+                <h2 className="text-xl md:text-2xl font-bold flex items-center gap-2">
+                  <FaCalendarAlt />
+                  Today's Result - Suvarna Keralam (02-01-2026)
+                </h2>
+              </div>
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  <div className="bg-green-50 p-6 rounded-lg text-center">
+                    <div className="text-sm text-gray-600 mb-2">First Prize</div>
+                    <div className="text-3xl font-bold text-green-700 mb-2">RA 345678</div>
+                    <div className="text-2xl font-bold text-yellow-600">₹75,00,000</div>
+                  </div>
+                  <div className="bg-yellow-50 p-6 rounded-lg text-center">
+                    <div className="text-sm text-gray-600 mb-2">Second Prize</div>
+                    <div className="text-3xl font-bold text-green-700 mb-2">SB 456789</div>
+                    <div className="text-2xl font-bold text-yellow-600">₹10,00,000</div>
+                  </div>
+                  <div className="bg-blue-50 p-6 rounded-lg text-center">
+                    <div className="text-sm text-gray-600 mb-2">Third Prize</div>
+                    <div className="text-3xl font-bold text-green-700 mb-2">TC 567890</div>
+                    <div className="text-2xl font-bold text-yellow-600">₹5,00,000</div>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <button className="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors">
+                    View Full Results
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Two Column Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column - Recent Results */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden mb-8">
+                <div className="bg-green-600 text-white px-6 py-4">
+                  <h2 className="text-xl font-bold">Recent Lottery Results</h2>
+                </div>
+                <div className="p-6">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-gray-50">
+                          <th className="py-3 px-4 text-left font-semibold text-gray-700">Lottery Name</th>
+                          <th className="py-3 px-4 text-left font-semibold text-gray-700">Date</th>
+                          <th className="py-3 px-4 text-left font-semibold text-gray-700">1st Prize</th>
+                          <th className="py-3 px-4 text-left font-semibold text-gray-700">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {lotteryResults.map((lottery) => (
+                          <tr key={lottery.id} className="border-b border-gray-100 hover:bg-gray-50">
+                            <td className="py-4 px-4">
+                              <div className="font-medium text-green-700">{lottery.name}</div>
+                            </td>
+                            <td className="py-4 px-4">{lottery.date}</td>
+                            <td className="py-4 px-4">
+                              <div className="font-bold">{lottery.result}</div>
+                              <div className="text-sm text-yellow-600">{lottery.prize}</div>
+                            </td>
+                            <td className="py-4 px-4">
+                              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                lottery.status === 'Active' 
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-gray-100 text-gray-800'
+                              }`}>
+                                {lottery.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bumper Lotteries Section */}
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                <div className="bg-yellow-500 text-white px-6 py-4">
+                  <h2 className="text-xl font-bold">Bumper Lotteries 2025-2026</h2>
+                </div>
+                <div className="p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {bumperLotteries.map((bumper) => (
+                      <div key={bumper.id} className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-6 hover:shadow-md transition-shadow">
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-gray-800 mb-2">{bumper.name}</div>
+                          <div className="text-2xl font-bold text-green-700 mb-3">{bumper.prize}</div>
+                          <div className="text-sm text-gray-600 mb-4">Draw Date: {bumper.drawDate}</div>
+                          <button className="w-full bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600 transition-colors font-medium">
+                            {bumper.status === 'Active' ? 'Buy Tickets' : 'Coming Soon'}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column - Sidebar */}
+            <div className="space-y-8">
+              {/* News Section */}
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                <div className="bg-blue-600 text-white px-6 py-4">
+                  <h2 className="text-xl font-bold flex items-center gap-2">
+                    <FaNewspaper />
+                    Latest News
+                  </h2>
+                </div>
+                <div className="p-6">
+                  <div className="space-y-4">
+                    {news.map((item) => (
+                      <div key={item.id} className="pb-4 border-b border-gray-100 last:border-0">
+                        <div className="text-sm text-gray-500 mb-1">{item.date}</div>
+                        <h3 className="font-semibold text-gray-800 hover:text-green-600 cursor-pointer">
+                          {item.title}
+                        </h3>
+                        <span className="inline-block mt-2 px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                          {item.category}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <button className="w-full mt-4 text-center text-green-600 font-medium hover:text-green-700">
+                    View All News →
+                  </button>
+                </div>
+              </div>
+
+              {/* Downloads Section */}
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                <div className="bg-purple-600 text-white px-6 py-4">
+                  <h2 className="text-xl font-bold flex items-center gap-2">
+                    <FaDownload />
+                    Downloads
+                  </h2>
+                </div>
+                <div className="p-6">
+                  <div className="space-y-3">
+                    {['Lottery Results PDF', 'Prize Claim Form', 'Rules & Regulations', 'Schedule 2026'].map((item, index) => (
+                      <button
+                        key={index}
+                        className="w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors flex items-center justify-between"
+                      >
+                        <span className="font-medium text-gray-700">{item}</span>
+                        <FaDownload className="text-gray-400" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Ad Space */}
+              <div className="bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl p-6 text-center text-white">
+                <h3 className="text-xl font-bold mb-2">Start up? Start with Airo</h3>
+                <p className="mb-4 opacity-90">Discover how Airo's intelligent tools simplify every step of building your online presence</p>
+                <div className="bg-white text-blue-600 font-bold py-2 px-4 rounded-lg inline-block">
+                  GoDaddy.com
+                </div>
+                <button className="mt-4 w-full bg-white text-blue-600 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                  Shop Now →
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Links Section */}
+          <section className="mt-12">
+            <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-xl p-8 text-white">
+              <h2 className="text-2xl font-bold mb-6 text-center">Quick Links</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {['Result Archive', 'Ticket Booking', 'Prize Claim', 'Agent Login', 'Rules', 'Schedule', 'Contact', 'FAQ'].map((link, index) => (
+                  <button
+                    key={index}
+                    className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm py-3 rounded-lg font-medium transition-all hover:scale-105"
+                  >
+                    {link}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+        </main>
+
+        {/* Footer */}
+        <footer className="bg-gray-900 text-white mt-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+              {/* Column 1 */}
+              <div>
+                <h3 className="text-xl font-bold mb-4">Kerala Lotteries</h3>
+                <p className="text-gray-400 mb-4">
+                  Official website of Kerala State Lottery Department. Providing daily results, prize information, and ticket booking services.
+                </p>
+                <div className="flex space-x-4">
+                  {[FaFacebook, FaTwitter, FaInstagram, FaYoutube, FaWhatsapp].map((Icon, index) => (
+                    <button
+                      key={index}
+                      className="w-10 h-10 bg-gray-800 hover:bg-green-600 rounded-full flex items-center justify-center transition-colors"
+                    >
+                      <Icon />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Column 2 */}
+              <div>
+                <h4 className="font-bold text-lg mb-4">Quick Links</h4>
+                <ul className="space-y-2">
+                  {['Home', 'Results', 'Bumper', 'Tickets', 'Downloads'].map((item, index) => (
+                    <li key={index}>
+                      <Link to={`/${item.toLowerCase()}`} className="text-gray-400 hover:text-white transition-colors">
+                        {item}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Column 3 */}
+              <div>
+                <h4 className="font-bold text-lg mb-4">Important</h4>
+                <ul className="space-y-2">
+                  {['Terms & Conditions', 'Privacy Policy', 'Disclaimer', 'Rules', 'Contact Us'].map((item, index) => (
+                    <li key={index}>
+                      <Link to={`/${item.toLowerCase().replace(/\s+/g, '-')}`} className="text-gray-400 hover:text-white transition-colors">
+                        {item}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Column 4 */}
+              <div>
+                <h4 className="font-bold text-lg mb-4">Contact Info</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <FaMapMarkerAlt />
+                    <span>Kerala State Lottery Department, Thiruvananthapuram</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <FaPhone />
+                    <span>+91-471-2321132</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <FaEnvelope />
+                    <span>info@keralalotteries.net</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+              <p>© {new Date().getFullYear()} Kerala State Lottery Department. All Rights Reserved.</p>
+              <p className="mt-2 text-sm">This is the official website of Kerala State Lottery Department.</p>
+            </div>
+          </div>
+        </footer>
+
+        {/* Floating Action Buttons */}
+        <div className="fixed bottom-6 right-6 flex flex-col gap-3">
+          <button className="bg-green-600 text-white p-4 rounded-full shadow-2xl hover:bg-green-700 transition-colors hover:scale-110">
+            <FaWhatsapp className="text-2xl" />
+          </button>
+          <button className="bg-red-600 text-white p-4 rounded-full shadow-2xl hover:bg-red-700 transition-colors hover:scale-110">
+            <FaPhone className="text-xl" />
+          </button>
         </div>
-      </Link>
-    </div>
+      </div>
+    </>
   );
 };
 
-export default VegetableEcommerce;
+export default KeralaLottery;
