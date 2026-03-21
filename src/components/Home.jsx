@@ -1,268 +1,505 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
-const PublicMessageBoard = () => {
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(false);
+const LuxuryBookingApp = () => {
+  const [selectedPlace, setSelectedPlace] = useState(null);
+  const [selectedHotel, setSelectedHotel] = useState(null);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [bookingStep, setBookingStep] = useState("places"); // places, hotels, rooms, booking
 
-  // Initialize with sample messages for demo (no backend required)
-  useEffect(() => {
-    // Load messages from localStorage
-    const savedMessages = localStorage.getItem('publicMessages');
-    if (savedMessages) {
-      setMessages(JSON.parse(savedMessages));
-    } else {
-      // Sample messages for demonstration
-      const sampleMessages = [
-        {
-          id: Date.now() - 1000000,
-          text: "Welcome to the public message board! 👋",
-          createdAt: new Date(Date.now() - 1000000).toISOString()
-        },
-        {
-          id: Date.now() - 2000000,
-          text: "No login required - everyone can post!",
-          createdAt: new Date(Date.now() - 2000000).toISOString()
-        },
-        {
-          id: Date.now() - 3000000,
-          text: "Messages automatically disappear after 36 hours",
-          createdAt: new Date(Date.now() - 3000000).toISOString()
-        }
-      ];
-      setMessages(sampleMessages);
-      localStorage.setItem('publicMessages', JSON.stringify(sampleMessages));
-    }
+  // 20 Special Places (Hindu Pilgrimage & Muslim Holy Sites)
+  const places = [
+    { id: 1, name: "Kedarnath", state: "Uttarakhand", type: "Hindu", image: "🏔️", description: "Sacred Shiva temple in Himalayas" },
+    { id: 2, name: "Badrinath", state: "Uttarakhand", type: "Hindu", image: "⛰️", description: "Holy Vishnu temple" },
+    { id: 3, name: "Vaishno Devi", state: "Jammu & Kashmir", type: "Hindu", image: "🙏", description: "Famous Mata Vaishno Devi shrine" },
+    { id: 4, name: "Omkareshwar", state: "Madhya Pradesh", type: "Hindu", image: "🕉️", description: "Sacred Jyotirlinga temple" },
+    { id: 5, name: "Khatushyam", state: "Rajasthan", type: "Hindu", image: "✨", description: "Famous Barbarika temple" },
+    { id: 6, name: "Amarnath", state: "Jammu & Kashmir", type: "Hindu", image: "❄️", description: "Holy ice Shiva lingam" },
+    { id: 7, name: "Rameswaram", state: "Tamil Nadu", type: "Hindu", image: "🌊", description: "Sacred Ramanathaswamy temple" },
+    { id: 8, name: "Dwarka", state: "Gujarat", type: "Hindu", image: "🏯", description: "Lord Krishna's kingdom" },
+    { id: 9, name: "Varanasi", state: "Uttar Pradesh", type: "Hindu", image: "🕯️", description: "Ancient holy city on Ganges" },
+    { id: 10, name: "Tirupati", state: "Andhra Pradesh", type: "Hindu", image: "⛩️", description: "Famous Venkateswara temple" },
+    { id: 11, name: "Ajmer Sharif", state: "Rajasthan", type: "Muslim", image: "🕌", description: "Sufi saint Khwaja Moinuddin Chishti dargah" },
+    { id: 12, name: "Nizamuddin Dargah", state: "Delhi", type: "Muslim", image: "🕌", description: "Famous Sufi shrine in Delhi" },
+    { id: 13, name: "Haji Ali Dargah", state: "Maharashtra", type: "Muslim", image: "🌊", description: "Oceanic mosque in Mumbai" },
+    { id: 14, name: "Jama Masjid", state: "Delhi", type: "Muslim", image: "🕌", description: "India's largest mosque" },
+    { id: 15, name: "Taj Mahal", state: "Uttar Pradesh", type: "Muslim", image: "🏛️", description: "Symbol of love and Islamic architecture" },
+    { id: 16, name: "Fatehpur Sikri", state: "Uttar Pradesh", type: "Muslim", image: "🏰", description: "Historical Mughal city" },
+    { id: 17, name: "Charminar", state: "Telangana", type: "Muslim", image: "🎯", description: "Iconic monument in Hyderabad" },
+    { id: 18, name: "Salim Chishti Dargah", state: "Uttar Pradesh", type: "Muslim", image: "🕌", description: "Famous Sufi shrine in Fatehpur Sikri" },
+    { id: 19, name: "Dargah Hazratbal", state: "Jammu & Kashmir", type: "Muslim", image: "🕌", description: "Sacred Muslim shrine in Srinagar" },
+    { id: 20, name: "Cheraman Juma Masjid", state: "Kerala", type: "Muslim", image: "🕌", description: "India's first mosque" }
+  ];
 
-    // Clean up old messages every minute
-    const cleanupInterval = setInterval(cleanupOldMessages, 60000);
-    return () => clearInterval(cleanupInterval);
-  }, []);
-
-  // Clean up messages older than 36 hours
-  const cleanupOldMessages = () => {
-    const thirtySixHoursAgo = Date.now() - (36 * 60 * 60 * 1000);
-    const updatedMessages = messages.filter(msg => 
-      new Date(msg.createdAt).getTime() > thirtySixHoursAgo
-    );
-    
-    if (updatedMessages.length !== messages.length) {
-      setMessages(updatedMessages);
-      localStorage.setItem('publicMessages', JSON.stringify(updatedMessages));
-    }
+  // Hotels data for each place
+  const hotels = {
+    "Kedarnath": [
+      { id: 1, name: "Kedar Valley Resort", rating: 4.5, price: 3500, image: "🏨", amenities: ["Free WiFi", "Heater", "Restaurant"] },
+      { id: 2, name: "Himalayan Retreat", rating: 4.2, price: 2800, image: "🏔️", amenities: ["Mountain View", "Room Service", "Parking"] },
+      { id: 3, name: "Shiva Grand Hotel", rating: 4.0, price: 2200, image: "🏨", amenities: ["Geyser", "Restaurant", "Power Backup"] }
+    ],
+    "Badrinath": [
+      { id: 1, name: "Badri Vishal Resort", rating: 4.6, price: 3800, image: "🏨", amenities: ["Free WiFi", "Heater", "Restaurant"] },
+      { id: 2, name: "Alaknanda Palace", rating: 4.3, price: 3200, image: "🏔️", amenities: ["River View", "Room Service", "Parking"] }
+    ],
+    "Vaishno Devi": [
+      { id: 1, name: "Mata Vaishno Heights", rating: 4.7, price: 4200, image: "🏨", amenities: ["Free WiFi", "Restaurant", "AC", "Parking"] },
+      { id: 2, name: "Triokya Resort", rating: 4.4, price: 3500, image: "🏨", amenities: ["Room Service", "Geyser", "Restaurant"] }
+    ],
+    "Omkareshwar": [
+      { id: 1, name: "Om Resort & Spa", rating: 4.5, price: 3000, image: "🏨", amenities: ["Free WiFi", "Pool", "Restaurant"] },
+      { id: 2, name: "Narmada View Hotel", rating: 4.1, price: 2500, image: "🌊", amenities: ["River View", "Room Service", "Parking"] }
+    ],
+    "Khatushyam": [
+      { id: 1, name: "Shyam Palace", rating: 4.3, price: 2800, image: "🏨", amenities: ["Free WiFi", "Restaurant", "Parking"] },
+      { id: 2, name: "Barbarika Resort", rating: 4.0, price: 2200, image: "🏨", amenities: ["Room Service", "Geyser", "Restaurant"] }
+    ],
+    "Amarnath": [
+      { id: 1, name: "Amarnath Base Camp", rating: 4.2, price: 4000, image: "⛺", amenities: ["Heater", "Medical Facility", "Restaurant"] }
+    ],
+    "Rameswaram": [
+      { id: 1, name: "Rameswaram Beach Resort", rating: 4.5, price: 3500, image: "🌊", amenities: ["Sea View", "Free WiFi", "Restaurant"] },
+      { id: 2, name: "Ramanathapuram Palace", rating: 4.1, price: 2800, image: "🏨", amenities: ["Room Service", "Parking", "AC"] }
+    ],
+    "Dwarka": [
+      { id: 1, name: "Dwarka Beach Resort", rating: 4.4, price: 3200, image: "🌊", amenities: ["Free WiFi", "Restaurant", "Parking"] }
+    ],
+    "Varanasi": [
+      { id: 1, name: "Ganges View Hotel", rating: 4.6, price: 4500, image: "🌊", amenities: ["Ganga View", "Free WiFi", "Restaurant"] },
+      { id: 2, name: "Kashi Heritage", rating: 4.3, price: 3800, image: "🏨", amenities: ["Heritage Room", "Room Service", "AC"] }
+    ],
+    "Tirupati": [
+      { id: 1, name: "Tirumala Residency", rating: 4.7, price: 4800, image: "🏨", amenities: ["Free WiFi", "Restaurant", "AC", "Parking"] }
+    ],
+    "Ajmer Sharif": [
+      { id: 1, name: "Khwaja Palace", rating: 4.5, price: 3500, image: "🕌", amenities: ["Free WiFi", "Restaurant", "Parking"] },
+      { id: 2, name: "Sufi Retreat", rating: 4.2, price: 2800, image: "🏨", amenities: ["Room Service", "Geyser", "Restaurant"] }
+    ],
+    "Nizamuddin Dargah": [
+      { id: 1, name: "Hazrat Nizamuddin Inn", rating: 4.3, price: 3200, image: "🏨", amenities: ["Free WiFi", "Restaurant", "Parking"] }
+    ],
+    "Haji Ali Dargah": [
+      { id: 1, name: "Haji Ali Residency", rating: 4.4, price: 3800, image: "🌊", amenities: ["Sea View", "Free WiFi", "Restaurant"] },
+      { id: 2, name: "Mahalaxmi Suites", rating: 4.1, price: 3200, image: "🏨", amenities: ["AC", "Room Service", "Parking"] }
+    ],
+    "Jama Masjid": [
+      { id: 1, name: "Delhi Heritage Hotel", rating: 4.2, price: 2900, image: "🏨", amenities: ["Free WiFi", "Restaurant", "AC"] }
+    ],
+    "Taj Mahal": [
+      { id: 1, name: "Taj View Resort", rating: 4.8, price: 5500, image: "🏛️", amenities: ["Taj View", "Free WiFi", "Pool", "Restaurant"] },
+      { id: 2, name: "Mughal Heritage", rating: 4.5, price: 4800, image: "🏨", amenities: ["Heritage Room", "AC", "Restaurant"] }
+    ],
+    "Fatehpur Sikri": [
+      { id: 1, name: "Mughal Retreat", rating: 4.3, price: 3400, image: "🏰", amenities: ["Free WiFi", "Restaurant", "Parking"] }
+    ],
+    "Charminar": [
+      { id: 1, name: "Charminar Palace", rating: 4.4, price: 3600, image: "🏨", amenities: ["Free WiFi", "Restaurant", "AC"] }
+    ],
+    "Salim Chishti Dargah": [
+      { id: 1, name: "Fatehpur Heritage", rating: 4.2, price: 3300, image: "🏨", amenities: ["Free WiFi", "Restaurant", "Parking"] }
+    ],
+    "Dargah Hazratbal": [
+      { id: 1, name: "Hazratbal View", rating: 4.5, price: 4200, image: "🏔️", amenities: ["Lake View", "Heater", "Restaurant"] }
+    ],
+    "Cheraman Juma Masjid": [
+      { id: 1, name: "Kerala Heritage Inn", rating: 4.3, price: 2800, image: "🏨", amenities: ["Free WiFi", "Restaurant", "Parking"] }
+    ]
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    if (!newMessage.trim()) {
-      setError("Please enter a message");
-      return;
-    }
-    
-    if (newMessage.length > 500) {
-      setError("Message is too long (maximum 500 characters)");
-      return;
-    }
-    
-    setLoading(true);
-    setError("");
-    
-    // Create new message
-    const newMsg = {
-      id: Date.now(),
-      text: newMessage.trim(),
-      createdAt: new Date().toISOString()
-    };
-    
-    // Add to messages
-    const updatedMessages = [newMsg, ...messages];
-    setMessages(updatedMessages);
-    
-    // Save to localStorage
-    localStorage.setItem('publicMessages', JSON.stringify(updatedMessages));
-    
-    setNewMessage("");
-    setSuccess("Message posted successfully!");
-    
-    // Clear success message after 3 seconds
-    setTimeout(() => setSuccess(""), 3000);
-    setLoading(false);
+  // Rooms data for each hotel
+  const rooms = {
+    "Kedar Valley Resort": [
+      { id: 1, name: "Deluxe Room", price: 3500, capacity: 2, amenities: ["King Bed", "AC", "TV", "Attached Bathroom"], image: "🛏️" },
+      { id: 2, name: "Suite Room", price: 5500, capacity: 4, amenities: ["King Bed", "Living Area", "AC", "Mountain View"], image: "🛋️" }
+    ],
+    "Himalayan Retreat": [
+      { id: 1, name: "Standard Room", price: 2800, capacity: 2, amenities: ["Double Bed", "Heater", "Attached Bathroom"], image: "🛏️" },
+      { id: 2, name: "Premium Room", price: 4200, capacity: 3, amenities: ["King Bed", "Mountain View", "AC", "TV"], image: "🏔️" }
+    ],
+    "Shiva Grand Hotel": [
+      { id: 1, name: "Economy Room", price: 2200, capacity: 2, amenities: ["Double Bed", "Geyser", "TV"], image: "🛏️" }
+    ],
+    "Badri Vishal Resort": [
+      { id: 1, name: "Deluxe Room", price: 3800, capacity: 2, amenities: ["King Bed", "Heater", "TV", "Attached Bathroom"], image: "🛏️" },
+      { id: 2, name: "Executive Suite", price: 6000, capacity: 4, amenities: ["2 Bedrooms", "Living Room", "Mountain View"], image: "🛋️" }
+    ],
+    "Alaknanda Palace": [
+      { id: 1, name: "River View Room", price: 3200, capacity: 2, amenities: ["River View", "King Bed", "AC", "TV"], image: "🌊" }
+    ],
+    "Mata Vaishno Heights": [
+      { id: 1, name: "Deluxe Room", price: 4200, capacity: 2, amenities: ["King Bed", "AC", "TV", "Mini Bar"], image: "🛏️" },
+      { id: 2, name: "Premium Suite", price: 6500, capacity: 4, amenities: ["Suite", "Living Area", "AC", "City View"], image: "🛋️" }
+    ],
+    "Triokya Resort": [
+      { id: 1, name: "Standard Room", price: 3500, capacity: 2, amenities: ["Double Bed", "AC", "TV"], image: "🛏️" }
+    ],
+    "Om Resort & Spa": [
+      { id: 1, name: "Deluxe Room", price: 3000, capacity: 2, amenities: ["King Bed", "AC", "TV", "Pool View"], image: "🛏️" },
+      { id: 2, name: "Spa Suite", price: 5000, capacity: 2, amenities: ["Jacuzzi", "King Bed", "Spa Access"], image: "💆" }
+    ],
+    "Narmada View Hotel": [
+      { id: 1, name: "River View Room", price: 2500, capacity: 2, amenities: ["River View", "Double Bed", "TV"], image: "🌊" }
+    ],
+    "Shyam Palace": [
+      { id: 1, name: "Standard Room", price: 2800, capacity: 2, amenities: ["Double Bed", "AC", "TV"], image: "🛏️" }
+    ],
+    "Barbarika Resort": [
+      { id: 1, name: "Economy Room", price: 2200, capacity: 2, amenities: ["Double Bed", "Geyser", "TV"], image: "🛏️" }
+    ],
+    "Amarnath Base Camp": [
+      { id: 1, name: "Tent Stay", price: 4000, capacity: 2, amenities: ["Heater", "Sleeping Bags", "Medical Kit"], image: "⛺" }
+    ],
+    "Rameswaram Beach Resort": [
+      { id: 1, name: "Sea View Room", price: 3500, capacity: 2, amenities: ["Sea View", "King Bed", "AC", "TV"], image: "🌊" },
+      { id: 2, name: "Beach Suite", price: 5500, capacity: 4, amenities: ["Suite", "Beach Access", "AC", "Mini Bar"], image: "🏖️" }
+    ],
+    "Ramanathapuram Palace": [
+      { id: 1, name: "Deluxe Room", price: 2800, capacity: 2, amenities: ["King Bed", "AC", "TV"], image: "🛏️" }
+    ],
+    "Dwarka Beach Resort": [
+      { id: 1, name: "Deluxe Room", price: 3200, capacity: 2, amenities: ["Sea View", "AC", "TV", "Restaurant"], image: "🌊" }
+    ],
+    "Ganges View Hotel": [
+      { id: 1, name: "Ganga View Room", price: 4500, capacity: 2, amenities: ["Ganga View", "King Bed", "AC", "TV"], image: "🌊" },
+      { id: 2, name: "Heritage Suite", price: 7000, capacity: 4, amenities: ["Heritage Decor", "Living Area", "Ganga View"], image: "🏛️" }
+    ],
+    "Kashi Heritage": [
+      { id: 1, name: "Heritage Room", price: 3800, capacity: 2, amenities: ["Heritage Style", "AC", "TV", "Attached Bathroom"], image: "🏨" }
+    ],
+    "Tirumala Residency": [
+      { id: 1, name: "Premium Room", price: 4800, capacity: 2, amenities: ["King Bed", "AC", "TV", "Mini Bar"], image: "🛏️" },
+      { id: 2, name: "Executive Suite", price: 7500, capacity: 4, amenities: ["Suite", "Living Area", "AC", "City View"], image: "🛋️" }
+    ],
+    "Khwaja Palace": [
+      { id: 1, name: "Deluxe Room", price: 3500, capacity: 2, amenities: ["King Bed", "AC", "TV"], image: "🛏️" }
+    ],
+    "Sufi Retreat": [
+      { id: 1, name: "Standard Room", price: 2800, capacity: 2, amenities: ["Double Bed", "AC", "TV"], image: "🛏️" }
+    ],
+    "Hazrat Nizamuddin Inn": [
+      { id: 1, name: "Deluxe Room", price: 3200, capacity: 2, amenities: ["King Bed", "AC", "TV", "WiFi"], image: "🛏️" }
+    ],
+    "Haji Ali Residency": [
+      { id: 1, name: "Sea View Room", price: 3800, capacity: 2, amenities: ["Sea View", "King Bed", "AC", "TV"], image: "🌊" }
+    ],
+    "Mahalaxmi Suites": [
+      { id: 1, name: "Executive Suite", price: 3200, capacity: 2, amenities: ["Suite", "AC", "TV", "WiFi"], image: "🛋️" }
+    ],
+    "Delhi Heritage Hotel": [
+      { id: 1, name: "Heritage Room", price: 2900, capacity: 2, amenities: ["Heritage Style", "AC", "TV"], image: "🏨" }
+    ],
+    "Taj View Resort": [
+      { id: 1, name: "Taj View Room", price: 5500, capacity: 2, amenities: ["Taj View", "King Bed", "AC", "Pool Access"], image: "🏛️" },
+      { id: 2, name: "Luxury Suite", price: 8500, capacity: 4, amenities: ["Suite", "Private Balcony", "Taj View", "Jacuzzi"], image: "✨" }
+    ],
+    "Mughal Heritage": [
+      { id: 1, name: "Heritage Room", price: 4800, capacity: 2, amenities: ["Mughal Architecture", "King Bed", "AC", "TV"], image: "🏰" }
+    ],
+    "Mughal Retreat": [
+      { id: 1, name: "Deluxe Room", price: 3400, capacity: 2, amenities: ["King Bed", "AC", "TV"], image: "🛏️" }
+    ],
+    "Charminar Palace": [
+      { id: 1, name: "Heritage Suite", price: 3600, capacity: 2, amenities: ["Heritage Style", "AC", "TV", "WiFi"], image: "🏨" }
+    ],
+    "Fatehpur Heritage": [
+      { id: 1, name: "Deluxe Room", price: 3300, capacity: 2, amenities: ["King Bed", "AC", "TV"], image: "🛏️" }
+    ],
+    "Hazratbal View": [
+      { id: 1, name: "Lake View Room", price: 4200, capacity: 2, amenities: ["Dal Lake View", "Heater", "TV", "Restaurant"], image: "🏔️" }
+    ],
+    "Kerala Heritage Inn": [
+      { id: 1, name: "Heritage Room", price: 2800, capacity: 2, amenities: ["Traditional Decor", "AC", "TV"], image: "🏨" }
+    ]
   };
 
-  const formatTimeRemaining = (createdAt) => {
-    const created = new Date(createdAt).getTime();
-    const now = Date.now();
-    const expiresIn = 36 * 60 * 60 * 1000; // 36 hours in milliseconds
-    const timeLeft = expiresIn - (now - created);
-    
-    if (timeLeft <= 0) return "Expired";
-    
-    const hours = Math.floor(timeLeft / (60 * 60 * 1000));
-    const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
-    const seconds = Math.floor((timeLeft % (60 * 1000)) / 1000);
-    
-    if (hours > 0) {
-      return `${hours}h ${minutes}m remaining`;
-    } else if (minutes > 0) {
-      return `${minutes}m ${seconds}s remaining`;
-    } else {
-      return `${seconds}s remaining`;
-    }
+  const handlePlaceClick = (place) => {
+    setSelectedPlace(place);
+    setSelectedHotel(null);
+    setSelectedRoom(null);
+    setBookingStep("hotels");
   };
 
-  const deleteMessage = (id) => {
-    const updatedMessages = messages.filter(msg => msg.id !== id);
-    setMessages(updatedMessages);
-    localStorage.setItem('publicMessages', JSON.stringify(updatedMessages));
+  const handleHotelClick = (hotel) => {
+    setSelectedHotel(hotel);
+    setSelectedRoom(null);
+    setBookingStep("rooms");
+  };
+
+  const handleRoomClick = (room) => {
+    setSelectedRoom(room);
+    setBookingStep("booking");
+  };
+
+  const handleBookRoom = () => {
+    // WhatsApp number
+    const whatsappNumber = "7462881297";
+    
+    // Create booking message
+    const message = `Hello, I would like to book a room:%0A%0A📍 *Place:* ${selectedPlace?.name}%0A🏨 *Hotel:* ${selectedHotel?.name}%0A🛏️ *Room:* ${selectedRoom?.name}%0A💰 *Price:* ₹${selectedRoom?.price}/night%0A👥 *Capacity:* ${selectedRoom?.capacity} persons%0A⭐ *Hotel Rating:* ${selectedHotel?.rating}%0A%0APlease confirm availability and provide payment details. Thank you!`;
+    
+    // WhatsApp URL
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
+    
+    // Open WhatsApp in new tab
+    window.open(whatsappUrl, "_blank");
+    
+    // Reset booking flow
+    setSelectedPlace(null);
+    setSelectedHotel(null);
+    setSelectedRoom(null);
+    setBookingStep("places");
+  };
+
+  const handleBack = () => {
+    if (bookingStep === "hotels") {
+      setSelectedPlace(null);
+      setBookingStep("places");
+    } else if (bookingStep === "rooms") {
+      setSelectedHotel(null);
+      setBookingStep("hotels");
+    } else if (bookingStep === "booking") {
+      setSelectedRoom(null);
+      setBookingStep("rooms");
+    }
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Header Section */}
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-800 mb-2">
-          📝 Public Message Board
-        </h1>
-        <p className="text-lg text-gray-600">
-          Share your thoughts anonymously • No login required
-        </p>
-        <div className="mt-2 inline-block bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full text-sm font-semibold">
-          ⏰ Messages auto-delete after 36 hours
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold">✨ Luxury Pilgrim Stays</h1>
+              <p className="text-sm mt-1">Book premium accommodations at sacred destinations</p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm">📞 24/7 Support</p>
+              <p className="text-sm font-semibold">WhatsApp: +91 7462881297</p>
+            </div>
+          </div>
         </div>
       </div>
-      
-      {/* Message Input Form */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border-2 border-blue-100">
-        <form onSubmit={handleSubmit}>
-          <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-            Write your message:
-          </label>
-          <textarea
-            id="message"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="What's on your mind? (max 500 characters)"
-            className="w-full p-4 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-700"
-            rows="4"
-            maxLength="500"
-          />
-          
-          <div className="flex flex-col sm:flex-row justify-between items-center mt-3 gap-3">
-            <span className={`text-sm font-medium ${
-              newMessage.length > 450 ? 'text-red-500' : 'text-gray-500'
-            }`}>
-              {newMessage.length}/500 characters
-            </span>
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full sm:w-auto px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-semibold transition-colors ${
-                loading ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-            >
-              {loading ? 'Posting...' : '📢 Post Message'}
-            </button>
-          </div>
-          
-          {error && (
-            <div className="mt-4 p-3 bg-red-100 text-red-700 rounded-lg border border-red-200">
-              ⚠️ {error}
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {bookingStep === "places" && (
+          <div>
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-800 mb-2">Choose Your Sacred Destination</h2>
+              <p className="text-gray-600">Select from our curated list of holy places across India</p>
+              <div className="mt-2 inline-flex gap-2">
+                <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">🕉️ Hindu Pilgrimage</span>
+                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">🕌 Muslim Holy Sites</span>
+              </div>
             </div>
-          )}
-          
-          {success && (
-            <div className="mt-4 p-3 bg-green-100 text-green-700 rounded-lg border border-green-200">
-              ✅ {success}
-            </div>
-          )}
-        </form>
-      </div>
-      
-      {/* Messages Stats */}
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-700">
-          💬 Recent Messages ({messages.length})
-        </h2>
-        <button
-          onClick={cleanupOldMessages}
-          className="text-sm text-gray-500 hover:text-gray-700 underline"
-        >
-          Refresh
-        </button>
-      </div>
-      
-      {/* Messages Display */}
-      <div className="space-y-4">
-        {messages.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-lg p-12 text-center border-2 border-dashed border-gray-300">
-            <div className="text-6xl mb-4">📭</div>
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">No messages yet</h3>
-            <p className="text-gray-500">Be the first to share your thoughts!</p>
-          </div>
-        ) : (
-          messages.map((message, index) => (
-            <div
-              key={message.id}
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all border-l-4 border-blue-500"
-            >
-              <div className="flex justify-between items-start mb-3">
-                <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded">
-                  #{messages.length - index}
-                </span>
-                <button
-                  onClick={() => deleteMessage(message.id)}
-                  className="text-gray-400 hover:text-red-500 transition-colors"
-                  title="Delete message"
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {places.map((place) => (
+                <div
+                  key={place.id}
+                  onClick={() => handlePlaceClick(place)}
+                  className="bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform transition-all hover:scale-105 hover:shadow-2xl"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
+                  <div className="h-32 bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-6xl">
+                    {place.image}
+                  </div>
+                  <div className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="text-xl font-bold text-gray-800">{place.name}</h3>
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        place.type === "Hindu" ? "bg-orange-100 text-orange-700" : "bg-green-100 text-green-700"
+                      }`}>
+                        {place.type}
+                      </span>
+                    </div>
+                    <p className="text-gray-600 text-sm mb-2">{place.state}</p>
+                    <p className="text-gray-500 text-xs">{place.description}</p>
+                    <div className="mt-3 text-blue-600 text-sm font-semibold">
+                      View Hotels →
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {bookingStep === "hotels" && selectedPlace && (
+          <div>
+            <button
+              onClick={handleBack}
+              className="mb-6 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              ← Back to Places
+            </button>
+            
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-800 mb-2">Hotels in {selectedPlace.name}</h2>
+              <p className="text-gray-600">Choose from our premium accommodations</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {hotels[selectedPlace.name]?.map((hotel) => (
+                <div
+                  key={hotel.id}
+                  onClick={() => handleHotelClick(hotel)}
+                  className="bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform transition-all hover:scale-105 hover:shadow-2xl"
+                >
+                  <div className="h-40 bg-gradient-to-r from-purple-400 to-pink-500 flex items-center justify-center text-6xl">
+                    {hotel.image}
+                  </div>
+                  <div className="p-5">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="text-xl font-bold text-gray-800">{hotel.name}</h3>
+                      <div className="flex items-center">
+                        <span className="text-yellow-500">★</span>
+                        <span className="ml-1 font-semibold">{hotel.rating}</span>
+                      </div>
+                    </div>
+                    <p className="text-2xl font-bold text-blue-600 mb-3">₹{hotel.price}/night</p>
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {hotel.amenities.slice(0, 3).map((amenity, idx) => (
+                        <span key={idx} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                          {amenity}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="mt-3 text-blue-600 text-sm font-semibold">
+                      View Rooms →
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {bookingStep === "rooms" && selectedPlace && selectedHotel && (
+          <div>
+            <button
+              onClick={handleBack}
+              className="mb-6 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              ← Back to Hotels
+            </button>
+            
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-800 mb-2">Rooms at {selectedHotel.name}</h2>
+              <p className="text-gray-600">Select your perfect room</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {rooms[selectedHotel.name]?.map((room) => (
+                <div
+                  key={room.id}
+                  onClick={() => handleRoomClick(room)}
+                  className="bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform transition-all hover:scale-105 hover:shadow-2xl"
+                >
+                  <div className="h-40 bg-gradient-to-r from-green-400 to-teal-500 flex items-center justify-center text-6xl">
+                    {room.image}
+                  </div>
+                  <div className="p-5">
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">{room.name}</h3>
+                    <p className="text-2xl font-bold text-blue-600 mb-2">₹{room.price}/night</p>
+                    <p className="text-gray-600 text-sm mb-3">👥 Capacity: {room.capacity} persons</p>
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {room.amenities.map((amenity, idx) => (
+                        <span key={idx} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                          {amenity}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="mt-3 text-blue-600 text-sm font-semibold">
+                      Book Now →
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {bookingStep === "booking" && selectedPlace && selectedHotel && selectedRoom && (
+          <div className="max-w-2xl mx-auto">
+            <button
+              onClick={handleBack}
+              className="mb-6 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              ← Back to Rooms
+            </button>
+            
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
+                <h2 className="text-2xl font-bold">Confirm Your Booking</h2>
+                <p className="text-sm">Please review your booking details</p>
+              </div>
+              
+              <div className="p-6 space-y-4">
+                <div className="border-b pb-3">
+                  <p className="text-gray-600 text-sm">📍 Destination</p>
+                  <p className="text-lg font-semibold text-gray-800">{selectedPlace.name}</p>
+                </div>
+                
+                <div className="border-b pb-3">
+                  <p className="text-gray-600 text-sm">🏨 Hotel</p>
+                  <p className="text-lg font-semibold text-gray-800">{selectedHotel.name}</p>
+                  <div className="flex items-center mt-1">
+                    <span className="text-yellow-500">★</span>
+                    <span className="ml-1 text-gray-600">{selectedHotel.rating} Rating</span>
+                  </div>
+                </div>
+                
+                <div className="border-b pb-3">
+                  <p className="text-gray-600 text-sm">🛏️ Room Type</p>
+                  <p className="text-lg font-semibold text-gray-800">{selectedRoom.name}</p>
+                  <p className="text-gray-600">Capacity: {selectedRoom.capacity} persons</p>
+                </div>
+                
+                <div className="border-b pb-3">
+                  <p className="text-gray-600 text-sm">💰 Price</p>
+                  <p className="text-2xl font-bold text-blue-600">₹{selectedRoom.price}/night</p>
+                  <p className="text-xs text-gray-500">*Taxes and fees may apply</p>
+                </div>
+                
+                <div>
+                  <p className="text-gray-600 text-sm mb-2">✨ Room Amenities</p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedRoom.amenities.map((amenity, idx) => (
+                      <span key={idx} className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
+                        ✓ {amenity}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4">
+                  <p className="text-sm text-yellow-800 flex items-start">
+                    <span className="text-lg mr-2">ℹ️</span>
+                    Clicking "Confirm & Book" will redirect you to WhatsApp for booking confirmation.
+                  </p>
+                </div>
+                
+                <button
+                  onClick={handleBookRoom}
+                  className="w-full mt-4 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold text-lg"
+                >
+                  📱 Confirm & Book on WhatsApp
                 </button>
               </div>
-              <p className="text-gray-800 mb-4 whitespace-pre-wrap text-lg">
-                {message.text}
-              </p>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-sm gap-2">
-                <span className="text-gray-500">
-                  🕒 {new Date(message.createdAt).toLocaleString()}
-                </span>
-                <span className={`font-semibold px-3 py-1 rounded-full ${
-                  formatTimeRemaining(message.createdAt).includes('h') 
-                    ? 'bg-green-100 text-green-700'
-                    : formatTimeRemaining(message.createdAt).includes('m')
-                    ? 'bg-yellow-100 text-yellow-700'
-                    : 'bg-red-100 text-red-700'
-                }`}>
-                  ⏳ {formatTimeRemaining(message.createdAt)}
-                </span>
-              </div>
             </div>
-          ))
+          </div>
         )}
       </div>
-      
-      {/* Footer Information */}
-      <div className="mt-8 text-center">
-        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-          <p className="text-sm text-gray-600 mb-2">
-            <span className="font-semibold">📋 How it works:</span>
-          </p>
-          <div className="flex flex-wrap justify-center gap-4 text-xs text-gray-500">
-            <span>✅ No login required</span>
-            <span>✍️ 500 characters max</span>
-            <span>⏰ Auto-deletes after 36h</span>
-            <span>💾 Saved in your browser</span>
-          </div>
-          <p className="text-xs text-gray-400 mt-3">
-            Messages are stored locally in your browser. Clear browser data to remove all messages.
-          </p>
+
+      {/* Footer */}
+      <div className="bg-gray-800 text-white mt-12 py-6">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <p className="text-sm">© 2024 Luxury Pilgrim Stays | Premium Accommodations at Sacred Destinations</p>
+          <p className="text-xs mt-2 text-gray-400">Book directly via WhatsApp for best rates and instant confirmation</p>
         </div>
       </div>
     </div>
   );
 };
 
-export default PublicMessageBoard;
+export default LuxuryBookingApp;
