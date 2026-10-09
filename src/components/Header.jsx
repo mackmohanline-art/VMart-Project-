@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'; 
+import React, { useState, useEffect, useRef } from 'react';
 import { FaBars, FaTimes, FaUser, FaSignOutAlt } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from '../assets/kelu.png'; // ✅ Your logo
@@ -9,7 +9,9 @@ const Header = () => {
   const [userData, setUserData] = useState(null);
   const navigate = useNavigate();
   const mobileMenuRef = useRef(null);
+  const menuButtonRef = useRef(null);
 
+  // ✅ Load user from localStorage
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user) {
@@ -18,24 +20,45 @@ const Header = () => {
     }
   }, []);
 
-  // ✅ Close mobile menu when clicking outside
+  // ✅ Close mobile menu when clicking outside (on overlay OR anywhere not in menu/button)
   useEffect(() => {
+    if (!mobileMenuOpen) return;
+
     const handleClickOutside = (event) => {
-      if (mobileMenuOpen && 
-          mobileMenuRef.current && 
-          !mobileMenuRef.current.contains(event.target) &&
-          !event.target.closest('button[class*="md:hidden"]')) {
-        setMobileMenuOpen(false);
+      // If click is inside the menu drawer → ignore
+      if (mobileMenuRef.current && mobileMenuRef.current.contains(event.target)) {
+        return;
       }
+      // If click is on the toggle button → ignore (button handles toggle itself)
+      if (menuButtonRef.current && menuButtonRef.current.contains(event.target)) {
+        return;
+      }
+      // Otherwise close
+      setMobileMenuOpen(false);
     };
 
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [mobileMenuOpen]);
 
-  // ✅ Scroll to top function
+  // ✅ Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
+
+  // ✅ Scroll to top
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -46,11 +69,11 @@ const Header = () => {
     setUserData(null);
     setMobileMenuOpen(false);
     navigate('/');
-    scrollToTop(); // ✅ Scroll to top after logout
+    scrollToTop();
     alert('You have been logged out successfully!');
   };
 
-  // ✅ Handle navigation with scroll to top
+  // ✅ Handle navigation (close menu + scroll top)
   const handleNavigation = () => {
     setMobileMenuOpen(false);
     scrollToTop();
@@ -59,12 +82,16 @@ const Header = () => {
   const navLinks = ['Home', 'About', 'Contact'];
 
   return (
-    <nav className="bg-gradient-to-r from-[#000] via-[#000] to-[#000] py-4 sticky top-0 z-[1000] shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center">
+    <nav className="w-full bg-black py-3 sm:py-4 sticky top-0 z-[1000] shadow-md overflow-x-hidden">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center gap-4">
           {/* ✅ Logo */}
-          <div className="flex items-center">
-            <img src={logo} alt="Logo" className="h-16 w-32" />
+          <div className="flex items-center shrink-0">
+            <img
+              src={logo}
+              alt="Logo"
+              className="h-12 sm:h-14 md:h-16 w-auto max-w-[120px] sm:max-w-[140px] object-contain"
+            />
           </div>
 
           {/* Desktop Navigation */}
@@ -74,14 +101,14 @@ const Header = () => {
                 key={i}
                 to={`/${text === 'Home' ? '' : text.toLowerCase().replace(/\s/g, '')}`}
                 className="text-white hover:text-yellow-400 transition duration-200 font-medium"
-                onClick={scrollToTop} // ✅ Scroll to top on desktop nav click
+                onClick={scrollToTop}
               >
                 {text}
               </Link>
             ))}
           </div>
 
-          {/* Desktop - Only show user info & logout if logged in */}
+          {/* Desktop - User info & logout */}
           <div className="hidden md:flex gap-4 items-center">
             {isLoggedIn && (
               <>
@@ -91,7 +118,7 @@ const Header = () => {
                 </span>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2 bg-red-600 hover:bg-red-700 px-4 py-1 rounded transition duration-200"
+                  className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-1 rounded transition duration-200"
                 >
                   <FaSignOutAlt />
                   Logout
@@ -102,59 +129,74 @@ const Header = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden text-yellow-400 focus:outline-none"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            ref={menuButtonRef}
+            aria-label="Toggle menu"
+            className="md:hidden text-yellow-400 focus:outline-none p-2 shrink-0"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
           >
             {mobileMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Navigation */}
+      {/* ✅ Overlay — must be BELOW drawer (z lower) and covers full screen */}
       {mobileMenuOpen && (
-        <div 
-          ref={mobileMenuRef}
-          className="md:hidden fixed top-0 right-0 w-64 h-full bg-[#1a1f2d] p-6 z-[1050] shadow-2xl transition duration-300"
-        >
-          <div className="flex flex-col space-y-6 mt-16">
-            {navLinks.map((text, i) => (
-              <Link
-                key={i}
-                to={`/${text === 'Home' ? '' : text.toLowerCase().replace(/\s/g, '')}`}
-                className="text-white hover:text-yellow-400 text-lg py-2"
-                onClick={handleNavigation} // ✅ Close menu AND scroll to top
-              >
-                {text}
-              </Link>
-            ))}
+        <div
+          className="md:hidden fixed inset-0 bg-black bg-opacity-60 z-[1040]"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
 
-            {/* Mobile - Only show user info & logout if logged in */}
-            {isLoggedIn && (
-              <div className="flex flex-col gap-4 mt-8">
-                <div className="flex items-center gap-3 text-yellow-400 py-2 border-t border-gray-700">
-                  <FaUser />
-                  <span className="font-medium">{userData?.name}</span>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 px-4 py-2 rounded transition duration-200"
-                >
-                  <FaSignOutAlt />
-                  Logout
-                </button>
-              </div>
-            )}
-          </div>
+      {/* ✅ Mobile Drawer — above overlay */}
+      <div
+        ref={mobileMenuRef}
+        className={`md:hidden fixed top-0 right-0 h-full w-72 max-w-[85vw] bg-[#1a1f2d] p-6 z-[1050] shadow-2xl transform transition-transform duration-300 ease-in-out ${
+          mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        {/* Close button inside drawer */}
+        <div className="flex justify-end mb-6">
+          <button
+            aria-label="Close menu"
+            className="text-yellow-400 focus:outline-none p-1"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <FaTimes size={22} />
+          </button>
         </div>
-      )}
 
-      {/* ✅ Overlay for outside click - only visible on mobile */}
-      {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-[1040]"></div>
-      )}
+        <div className="flex flex-col space-y-4">
+          {navLinks.map((text, i) => (
+            <Link
+              key={i}
+              to={`/${text === 'Home' ? '' : text.toLowerCase().replace(/\s/g, '')}`}
+              className="text-white hover:text-yellow-400 text-lg py-2 border-b border-gray-700/50"
+              onClick={handleNavigation}
+            >
+              {text}
+            </Link>
+          ))}
+
+          {/* Mobile - user info & logout */}
+          {isLoggedIn && (
+            <div className="flex flex-col gap-4 mt-6">
+              <div className="flex items-center gap-3 text-yellow-400 py-2 border-t border-gray-700">
+                <FaUser />
+                <span className="font-medium">{userData?.name}</span>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition duration-200"
+              >
+                <FaSignOutAlt />
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
     </nav>
   );
 };
-
 
 export default Header;
