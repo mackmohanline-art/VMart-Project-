@@ -1,656 +1,858 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { FaBomb, FaGamepad, FaClock, FaSkull, FaBrain, FaTachometerAlt, FaKeyboard, FaMousePointer } from 'react-icons/fa';
+import React, { useState } from 'react';
+import {
+  FaPhoneAlt,
+  FaEnvelope,
+  FaMapMarkerAlt,
+  FaClock,
+  FaWhatsapp,
+  FaHeadset,
+  FaUser,
+  FaCommentDots,
+  FaPaperPlane,
+  FaCheckCircle,
+  FaBuilding,
+  FaMobileAlt,
+  FaShieldAlt,
+  FaChevronDown,
+  FaFacebookF,
+  FaTwitter,
+  FaLinkedinIn,
+  FaInstagram,
+} from 'react-icons/fa';
 
-const TypingMaster = () => {
-  // Game states
-  const [difficulty, setDifficulty] = useState('medium');
-  const [timeLeft, setTimeLeft] = useState(60);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [score, setScore] = useState(0);
-  const [totalTyped, setTotalTyped] = useState(0);
-  const [accuracy, setAccuracy] = useState(100);
-  const [balloons, setBalloons] = useState([]);
-  const [inputValue, setInputValue] = useState('');
-  const [flash, setFlash] = useState(false);
-  const [gameOver, setGameOver] = useState(false);
-  
-  const containerRef = useRef(null);
-  const inputRef = useRef(null);
-  const timerRef = useRef(null);
+const Contact = () => {
+  // ---------------- Form State ----------------
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    loanType: '',
+    city: '',
+    message: '',
+  });
 
-  // Difficulty settings
-  const difficultySettings = {
-    easy: { 
-      speed: 2, 
-      spawnRate: 1000, 
-      letters: 'abcdefghijklmnopqrstuvwxyz',
-      points: 1
-    },
-    medium: { 
-      speed: 4, 
-      spawnRate: 800, 
-      letters: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
-      points: 2
-    },
-    hard: { 
-      speed: 6, 
-      spawnRate: 600, 
-      letters: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()',
-      points: 3
+  const [errors, setErrors] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+  const [openFaq, setOpenFaq] = useState(null);
+
+  // ---------------- Handlers ----------------
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
-  // Generate random letter based on difficulty
-  const getRandomLetter = () => {
-    const letters = difficultySettings[difficulty].letters;
-    return letters[Math.floor(Math.random() * letters.length)];
-  };
-
-  // Generate random position
-  const getRandomPosition = () => {
-    if (!containerRef.current) return { x: 50, y: 100 };
-    
-    const container = containerRef.current;
-    const x = Math.random() * (container.offsetWidth - 60);
-    const y = Math.random() * (container.offsetHeight - 60);
-    
-    return { x, y };
-  };
-
-  // Create new balloon
-  const createBalloon = () => {
-    const letter = getRandomLetter();
-    const position = getRandomPosition();
-    
-    const colors = [
-      '#FF6B6B', '#4ECDC4', '#FFD166', '#06D6A0', '#118AB2', 
-      '#EF476F', '#FFD166', '#06D6A0', '#118AB2', '#073B4C'
-    ];
-    
-    return {
-      id: Date.now() + Math.random(),
-      letter,
-      x: position.x,
-      y: position.y,
-      opacity: 1,
-      size: difficulty === 'hard' ? 45 : difficulty === 'medium' ? 55 : 65,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      isPopping: false
-    };
-  };
-
-  // Start game
-  const startGame = (selectedTime) => {
-    setTimeLeft(selectedTime);
-    setScore(0);
-    setTotalTyped(0);
-    setAccuracy(100);
-    setBalloons([]);
-    setIsPlaying(true);
-    setGameOver(false);
-    setInputValue('');
-    if (inputRef.current) inputRef.current.focus();
-    
-    // Add initial balloons
-    const initialBalloons = [];
-    const count = difficulty === 'hard' ? 8 : difficulty === 'medium' ? 6 : 4;
-    for (let i = 0; i < count; i++) {
-      initialBalloons.push(createBalloon());
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Enter a valid email address';
     }
-    setBalloons(initialBalloons);
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    } else if (!/^[6-9]\d{9}$/.test(formData.phone.replace(/\s/g, ''))) {
+      newErrors.phone = 'Enter a valid 10-digit mobile number';
+    }
+    if (!formData.loanType) newErrors.loanType = 'Please select a loan type';
+    if (!formData.city.trim()) newErrors.city = 'City is required';
+    if (!formData.message.trim()) newErrors.message = 'Message cannot be empty';
+
+    return newErrors;
   };
 
-  // Pop balloon with animation
-  const popBalloon = (balloonId) => {
-    setBalloons(prev => 
-      prev.map(balloon => 
-        balloon.id === balloonId 
-          ? { ...balloon, isPopping: true }
-          : balloon
-      )
-    );
-    
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+    // Simulate API call
+    setSubmitted(true);
     setTimeout(() => {
-      setBalloons(prev => prev.filter(balloon => balloon.id !== balloonId));
-    }, 300);
+      setFormData({
+        fullName: '',
+        email: '',
+        phone: '',
+        loanType: '',
+        city: '',
+        message: '',
+      });
+      setSubmitted(false);
+    }, 5000);
   };
 
-  // Handle key press
-  const handleKeyPress = useCallback((e) => {
-    if (!isPlaying || gameOver) return;
-    
-    const key = e.key;
-    if (key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
-      setTotalTyped(prev => prev + 1);
-      
-      // Find balloon with matching letter
-      const matchingBalloon = balloons.find(b => 
-        b.letter.toLowerCase() === key.toLowerCase() && !b.isPopping
-      );
-      
-      if (matchingBalloon) {
-        // Correct key - pop balloon
-        popBalloon(matchingBalloon.id);
-        setScore(prev => prev + difficultySettings[difficulty].points);
-        
-        // Add new balloon after a delay
-        setTimeout(() => {
-          setBalloons(prev => [...prev, createBalloon()]);
-        }, 200);
-      } else {
-        // Wrong key - flash red
-        setFlash(true);
-        setTimeout(() => setFlash(false), 200);
-      }
-      
-      // Update accuracy
-      const correctChars = matchingBalloon ? 1 : 0;
-      const newAccuracy = ((score + correctChars) / (totalTyped + 1)) * 100;
-      setAccuracy(Math.min(100, Math.max(0, newAccuracy)));
-      
-      setInputValue('');
-    }
-  }, [isPlaying, balloons, difficulty, score, totalTyped, gameOver]);
+  // ---------------- Data ----------------
+  const contactCards = [
+    {
+      icon: <FaPhoneAlt />,
+      title: 'Call Us',
+      lines: ['1800 103 3538 (Toll Free)', '1800 209 0909 (Alternate)'],
+      color: '#0057B8',
+    },
+    {
+      icon: <FaWhatsapp />,
+      title: 'WhatsApp',
+      lines: ['+91 98765 43210', 'Available 24x7'],
+      color: '#25D366',
+    },
+    {
+      icon: <FaEnvelope />,
+      title: 'Email Us',
+      lines: ['customercare@bajajfinserv.in', 'wecare@bajajfinserv.in'],
+      color: '#E63946',
+    },
+    {
+      icon: <FaMapMarkerAlt />,
+      title: 'Head Office',
+      lines: ['Bajaj Finance Ltd.,', 'Pune, Maharashtra - 411045'],
+      color: '#F4A261',
+    },
+  ];
 
-  // Handle balloon movement
-  useEffect(() => {
-    if (!isPlaying || gameOver) return;
-    
-    const moveBalloons = () => {
-      setBalloons(prev => 
-        prev.map(balloon => ({
-          ...balloon,
-          y: balloon.y - difficultySettings[difficulty].speed
-        })).filter(balloon => balloon.y > -100)
-      );
-    };
-    
-    const interval = setInterval(moveBalloons, 50);
-    return () => clearInterval(interval);
-  }, [isPlaying, difficulty, gameOver]);
+  const branches = [
+    {
+      city: 'Mumbai',
+      address: 'Bajaj Finance Ltd., 3rd Floor, Ceejay House, Shivsagar Estate, Dr. Annie Besant Road, Worli, Mumbai - 400018',
+      phone: '+91 22 6740 2000',
+      hours: 'Mon - Sat: 9:30 AM - 6:30 PM',
+    },
+    {
+      city: 'Pune',
+      address: 'Bajaj Auto Ltd. Complex, Mumbai-Pune Road, Akurdi, Pune - 411035',
+      phone: '+91 20 2740 7000',
+      hours: 'Mon - Sat: 9:30 AM - 6:30 PM',
+    },
+    {
+      city: 'Delhi',
+      address: 'Bajaj Finance Ltd., 5th Floor, Aggarwal Corporate Tower, Rajendra Place, New Delhi - 110008',
+      phone: '+91 11 4560 4000',
+      hours: 'Mon - Sat: 9:30 AM - 6:30 PM',
+    },
+    {
+      city: 'Bengaluru',
+      address: 'Bajaj Finance Ltd., Prestige Trade Tower, Palace Road, Bengaluru - 560001',
+      phone: '+91 80 6740 4000',
+      hours: 'Mon - Sat: 9:30 AM - 6:30 PM',
+    },
+  ];
 
-  // Spawn new balloons
-  useEffect(() => {
-    if (!isPlaying || gameOver) return;
-    
-    const spawnBalloon = () => {
-      if (balloons.length < (difficulty === 'hard' ? 12 : difficulty === 'medium' ? 9 : 6)) {
-        setBalloons(prev => [...prev, createBalloon()]);
-      }
-    };
-    
-    const interval = setInterval(spawnBalloon, difficultySettings[difficulty].spawnRate);
-    return () => clearInterval(interval);
-  }, [isPlaying, balloons.length, difficulty, gameOver]);
+  const faqs = [
+    {
+      q: 'How can I apply for a personal loan with Bajaj Finance?',
+      a: 'You can apply online through the Bajaj Finserv website, via the Bajaj Finserv app, or by visiting your nearest branch. The approval process is quick, and funds are typically disbursed within 24 hours.',
+    },
+    {
+      q: 'What documents are required for a home loan?',
+      a: 'You will need KYC documents (Aadhaar, PAN, address proof), income proof (salary slips or ITR), bank statements for the last 6 months, and property-related documents.',
+    },
+    {
+      q: 'What is the customer care number for Bajaj Finance?',
+      a: 'You can reach Bajaj Finance customer care at 1800 103 3538 (toll-free) or 1800 209 0909. You can also email us at customercare@bajajfinserv.in.',
+    },
+    {
+      q: 'How do I check my loan application status?',
+      a: 'Log in to your Bajaj Finserv account on the website or app, or call our customer care with your application reference number to check the live status.',
+    },
+    {
+      q: 'What are the loan repayment options available?',
+      a: 'We offer flexible EMI options with tenures ranging from 12 to 84 months. You can also choose to prepay or foreclose your loan as per the terms and conditions.',
+    },
+  ];
 
-  // Timer countdown
-  useEffect(() => {
-    if (isPlaying && timeLeft > 0 && !gameOver) {
-      timerRef.current = setTimeout(() => {
-        setTimeLeft(prev => prev - 1);
-      }, 1000);
-    } else if (timeLeft === 0 && isPlaying) {
-      setIsPlaying(false);
-      setGameOver(true);
-    }
-    
-    return () => clearTimeout(timerRef.current);
-  }, [isPlaying, timeLeft, gameOver]);
-
-  // Add keyboard event listener
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (isPlaying && !gameOver) {
-        handleKeyPress(e);
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyPress, isPlaying, gameOver]);
-
-  // Time options
-  const timeOptions = [30, 60, 90, 120];
-
-  // Styles
+  // ---------------- Styles ----------------
   const styles = {
-    container: {
+    page: {
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '2rem 0',
+      background: 'linear-gradient(135deg, #003B7A 0%, #0057B8 50%, #0077D4 100%)',
+      fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+      color: '#1a1a1a',
     },
-    gameArea: {
-      background: 'linear-gradient(180deg, #e0f7fa 0%, #bbdefb 100%)',
-      borderRadius: '1rem',
-      border: '2px solid #93c5fd',
-      position: 'relative',
-      overflow: 'hidden',
-      height: '500px',
+    hero: {
+      padding: '60px 20px 40px',
+      textAlign: 'center',
+      color: '#ffffff',
     },
-    balloon: {
-      position: 'absolute',
+    heroTitle: {
+      fontSize: 'clamp(1.8rem, 4vw, 3rem)',
+      fontWeight: '800',
+      marginBottom: '12px',
+      letterSpacing: '0.5px',
+    },
+    heroSubtitle: {
+      fontSize: 'clamp(0.95rem, 1.6vw, 1.15rem)',
+      maxWidth: '700px',
+      margin: '0 auto',
+      opacity: 0.92,
+      lineHeight: 1.6,
+    },
+    container: {
+      maxWidth: '1200px',
+      margin: '0 auto',
+      padding: '0 20px 60px',
+    },
+    cardGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
+      gap: '20px',
+      marginBottom: '50px',
+    },
+    contactCard: {
+      background: '#ffffff',
+      borderRadius: '14px',
+      padding: '28px 22px',
+      textAlign: 'center',
+      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.15)',
+      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+    },
+    iconCircle: (color) => ({
+      width: '64px',
+      height: '64px',
       borderRadius: '50%',
+      background: color,
+      color: '#ffffff',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      color: 'white',
-      fontWeight: 'bold',
-      border: '2px solid white',
-      boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+      fontSize: '1.6rem',
+      margin: '0 auto 16px',
+      boxShadow: `0 6px 18px ${color}55`,
+    }),
+    cardTitle: {
+      fontSize: '1.15rem',
+      fontWeight: '700',
+      marginBottom: '10px',
+      color: '#003B7A',
+    },
+    cardLine: {
+      fontSize: '0.92rem',
+      color: '#555555',
+      lineHeight: 1.6,
+      margin: '4px 0',
+    },
+    sectionTitle: {
+      fontSize: 'clamp(1.4rem, 2.5vw, 2rem)',
+      fontWeight: '800',
+      color: '#ffffff',
+      textAlign: 'center',
+      marginBottom: '10px',
+    },
+    sectionSubtitle: {
+      textAlign: 'center',
+      color: 'rgba(255,255,255,0.85)',
+      marginBottom: '32px',
+      fontSize: '0.98rem',
+    },
+    mainGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+      gap: '30px',
+      marginBottom: '60px',
+    },
+    formCard: {
+      background: '#ffffff',
+      borderRadius: '16px',
+      padding: '32px 28px',
+      boxShadow: '0 15px 40px rgba(0, 0, 0, 0.2)',
+    },
+    formTitle: {
+      fontSize: '1.4rem',
+      fontWeight: '800',
+      marginBottom: '6px',
+      color: '#003B7A',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px',
+    },
+    formSubtitle: {
+      fontSize: '0.9rem',
+      color: '#666',
+      marginBottom: '22px',
+    },
+    formGroup: {
+      marginBottom: '18px',
+    },
+    label: {
+      display: 'block',
+      fontSize: '0.88rem',
+      fontWeight: '600',
+      color: '#333',
+      marginBottom: '6px',
+    },
+    input: (hasError) => ({
+      width: '100%',
+      padding: '12px 14px',
+      borderRadius: '8px',
+      border: hasError ? '2px solid #E63946' : '1.5px solid #d0d7de',
+      fontSize: '0.95rem',
+      outline: 'none',
+      transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+      boxSizing: 'border-box',
+      background: '#fafbfc',
+      color: '#1a1a1a',
+    }),
+    errorText: {
+      color: '#E63946',
+      fontSize: '0.78rem',
+      marginTop: '4px',
+      fontWeight: '500',
+    },
+    textarea: (hasError) => ({
+      width: '100%',
+      padding: '12px 14px',
+      borderRadius: '8px',
+      border: hasError ? '2px solid #E63946' : '1.5px solid #d0d7de',
+      fontSize: '0.95rem',
+      outline: 'none',
+      resize: 'vertical',
+      minHeight: '110px',
+      fontFamily: 'inherit',
+      boxSizing: 'border-box',
+      background: '#fafbfc',
+      color: '#1a1a1a',
+    }),
+    submitBtn: {
+      width: '100%',
+      padding: '14px',
+      background: 'linear-gradient(90deg, #003B7A 0%, #0057B8 100%)',
+      color: '#ffffff',
+      border: 'none',
+      borderRadius: '10px',
+      fontSize: '1rem',
+      fontWeight: '700',
       cursor: 'pointer',
-      userSelect: 'none',
-      transition: 'transform 0.3s ease',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '10px',
+      transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+      boxShadow: '0 8px 20px rgba(0, 87, 184, 0.35)',
+      marginTop: '6px',
     },
-    textGradient: {
-      background: 'linear-gradient(45deg, #667eea, #764ba2, #f093fb)',
-      WebkitBackgroundClip: 'text',
-      WebkitTextFillColor: 'transparent',
-      backgroundSize: '300% 300%',
-      animation: 'gradientAnimation 3s ease infinite',
+    successBox: {
+      background: '#e7f9ee',
+      border: '1.5px solid #25D366',
+      color: '#1a7a3d',
+      padding: '14px 16px',
+      borderRadius: '10px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px',
+      marginBottom: '18px',
+      fontSize: '0.92rem',
+      fontWeight: '600',
     },
-    '@keyframes gradientAnimation': {
-      '0%': { backgroundPosition: '0% 50%' },
-      '50%': { backgroundPosition: '100% 50%' },
-      '100%': { backgroundPosition: '0% 50%' },
+    infoCard: {
+      background: '#ffffff',
+      borderRadius: '16px',
+      padding: '32px 28px',
+      boxShadow: '0 15px 40px rgba(0, 0, 0, 0.2)',
     },
-    '@keyframes float': {
-      '0%, 100%': { transform: 'translateY(0) rotate(0)' },
-      '50%': { transform: 'translateY(-10px) rotate(2deg)' },
+    infoTitle: {
+      fontSize: '1.4rem',
+      fontWeight: '800',
+      marginBottom: '18px',
+      color: '#003B7A',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px',
     },
-    '@keyframes pop': {
-      '0%': { transform: 'scale(1)', opacity: 1 },
-      '100%': { transform: 'scale(1.5)', opacity: 0 },
+    infoRow: {
+      display: 'flex',
+      alignItems: 'flex-start',
+      gap: '14px',
+      padding: '14px 0',
+      borderBottom: '1px solid #eef1f4',
     },
-    '@keyframes flash': {
-      '0%': { backgroundColor: 'transparent' },
-      '50%': { backgroundColor: 'rgba(255, 0, 0, 0.2)' },
-      '100%': { backgroundColor: 'transparent' },
+    infoIcon: {
+      width: '42px',
+      height: '42px',
+      borderRadius: '10px',
+      background: '#e8f1fb',
+      color: '#0057B8',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '1.1rem',
+      flexShrink: 0,
+    },
+    infoLabel: {
+      fontSize: '0.78rem',
+      color: '#888',
+      textTransform: 'uppercase',
+      letterSpacing: '0.6px',
+      fontWeight: '700',
+      marginBottom: '3px',
+    },
+    infoValue: {
+      fontSize: '0.95rem',
+      color: '#1a1a1a',
+      fontWeight: '600',
+      lineHeight: 1.5,
+    },
+    branchGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+      gap: '22px',
+      marginBottom: '60px',
+    },
+    branchCard: {
+      background: '#ffffff',
+      borderRadius: '14px',
+      padding: '24px 22px',
+      boxShadow: '0 10px 28px rgba(0, 0, 0, 0.15)',
+      borderTop: '5px solid #0057B8',
+    },
+    branchCity: {
+      fontSize: '1.15rem',
+      fontWeight: '800',
+      color: '#003B7A',
+      marginBottom: '10px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+    },
+    branchText: {
+      fontSize: '0.88rem',
+      color: '#555',
+      lineHeight: 1.6,
+      marginBottom: '8px',
+      display: 'flex',
+      alignItems: 'flex-start',
+      gap: '8px',
+    },
+    faqItem: {
+      background: '#ffffff',
+      borderRadius: '12px',
+      marginBottom: '14px',
+      overflow: 'hidden',
+      boxShadow: '0 6px 20px rgba(0, 0, 0, 0.12)',
+    },
+    faqQuestion: {
+      padding: '18px 22px',
+      fontSize: '1rem',
+      fontWeight: '700',
+      color: '#003B7A',
+      cursor: 'pointer',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: '12px',
+    },
+    faqAnswer: {
+      padding: '0 22px 20px',
+      fontSize: '0.92rem',
+      color: '#555',
+      lineHeight: 1.7,
+      borderTop: '1px solid #eef1f4',
+      paddingTop: '16px',
+    },
+    socialRow: {
+      display: 'flex',
+      justifyContent: 'center',
+      gap: '14px',
+      marginTop: '26px',
+      flexWrap: 'wrap',
+    },
+    socialBtn: (color) => ({
+      width: '46px',
+      height: '46px',
+      borderRadius: '50%',
+      background: color,
+      color: '#ffffff',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '1.1rem',
+      textDecoration: 'none',
+      transition: 'transform 0.2s ease',
+      boxShadow: `0 6px 16px ${color}55`,
+      border: 'none',
+      cursor: 'pointer',
+    }),
+    footerNote: {
+      textAlign: 'center',
+      color: 'rgba(255,255,255,0.85)',
+      fontSize: '0.88rem',
+      marginTop: '40px',
+      lineHeight: 1.7,
     },
   };
 
   return (
-    <div 
-      className={`py-8 bg-white min-h-screen ${flash ? 'flash-animation' : ''}`}
-      style={styles.container}
-    >
-      <div className="max-w-6xl mx-auto bg-white rounded-xl p-6 md:p-8 shadow-xl border border-gray-200">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h2 className="text-2xl md:text-4xl font-bold mb-4" style={styles.textGradient}>
-            <FaBomb className="inline mr-3" />
-            Typing Master Blast
-            <FaBomb className="inline ml-3" />
-          </h2>
-          <p className="text-gray-700 text-lg">
-            Pop balloons by typing matching letters before they escape!
-          </p>
-        </div>
-
-        {/* Game Controls */}
-        <div className="bg-gray-50 rounded-xl p-6 mb-8 border border-gray-200">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            {/* Difficulty Selection */}
-            <div className="bg-white rounded-lg p-4 border border-gray-300">
-              <h3 className="text-lg font-bold mb-3 text-blue-600 flex items-center">
-                <FaBrain className="mr-2" /> Difficulty Level
-              </h3>
-              <div className="space-y-2">
-                {['easy', 'medium', 'hard'].map((level) => (
-                  <button
-                    key={level}
-                    onClick={() => setDifficulty(level)}
-                    className={`w-full py-3 px-4 rounded-lg font-medium transition-all ${
-                      difficulty === level
-                        ? level === 'easy'
-                          ? 'bg-green-500 text-white shadow-md'
-                          : level === 'medium'
-                          ? 'bg-yellow-500 text-white shadow-md'
-                          : 'bg-red-500 text-white shadow-md'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {level.charAt(0).toUpperCase() + level.slice(1)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Time Selection */}
-            <div className="bg-white rounded-lg p-4 border border-gray-300">
-              <h3 className="text-lg font-bold mb-3 text-blue-600 flex items-center">
-                <FaClock className="mr-2" /> Select Time
-              </h3>
-              <div className="grid grid-cols-2 gap-2">
-                {timeOptions.map((time) => (
-                  <button
-                    key={time}
-                    onClick={() => !isPlaying && startGame(time)}
-                    disabled={isPlaying}
-                    className={`py-3 px-4 rounded-lg font-medium transition-all ${
-                      isPlaying
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-blue-100 text-blue-700 hover:bg-blue-200 hover:text-blue-800'
-                    }`}
-                  >
-                    {time} seconds
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Game Stats */}
-            <div className="bg-white rounded-lg p-4 border border-gray-300">
-              <h3 className="text-lg font-bold mb-3 text-blue-600 flex items-center">
-                <FaTachometerAlt className="mr-2" /> Current Stats
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{score}</div>
-                  <div className="text-sm text-gray-600">Score</div>
-                </div>
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">
-                    {Math.round(accuracy)}%
-                  </div>
-                  <div className="text-sm text-gray-600">Accuracy</div>
-                </div>
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">
-                    {balloons.length}
-                  </div>
-                  <div className="text-sm text-gray-600">Balloons</div>
-                </div>
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-red-600">
-                    {timeLeft}s
-                  </div>
-                  <div className="text-sm text-gray-600">Time Left</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Start/Stop Button */}
-          <div className="text-center">
-            <button
-              onClick={() => {
-                if (isPlaying) {
-                  setIsPlaying(false);
-                  setGameOver(true);
-                } else {
-                  startGame(60);
-                }
-              }}
-              className={`px-10 py-3 rounded-lg font-bold text-lg transition-all transform hover:scale-105 ${
-                isPlaying
-                  ? 'bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white'
-                  : 'bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white'
-              } shadow-lg`}
-            >
-              <FaGamepad className="inline mr-2" />
-              {isPlaying ? 'Stop Game' : 'Start Typing Game'}
-            </button>
-          </div>
-        </div>
-
-        {/* Game Instructions */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-8">
-          <h3 className="font-bold text-lg mb-3 text-blue-700 flex items-center">
-            <FaKeyboard className="mr-2" /> How to Play
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <h4 className="font-medium text-blue-600 mb-2">Controls:</h4>
-              <ul className="space-y-2 text-blue-700">
-                <li className="flex items-center">
-                  <FaKeyboard className="mr-2 text-sm" />
-                  Type letters on keyboard to pop balloons
-                </li>
-                <li className="flex items-center">
-                  <FaMousePointer className="mr-2 text-sm" />
-                  Click balloons directly as alternative
-                </li>
-                <li className="text-sm text-blue-600">
-                  Wrong key presses will flash screen red
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-medium text-blue-600 mb-2">Scoring:</h4>
-              <ul className="space-y-2 text-blue-700">
-                <li>Easy: 1 point per balloon</li>
-                <li>Medium: 2 points per balloon</li>
-                <li>Hard: 3 points per balloon</li>
-                <li className="text-sm">Accuracy affects final score</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Game Area */}
-        <div 
-          ref={containerRef}
-          style={styles.gameArea}
-          className="mb-8"
+    <div style={styles.page}>
+      {/* ---------- Hero ---------- */}
+      <div style={styles.hero}>
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '10px',
+            background: 'rgba(255,255,255,0.15)',
+            padding: '8px 18px',
+            borderRadius: '30px',
+            marginBottom: '18px',
+            fontSize: '0.85rem',
+            fontWeight: '600',
+            backdropFilter: 'blur(6px)',
+          }}
         >
-          {/* Balloons */}
-          {balloons.map((balloon) => (
-            <div
-              key={balloon.id}
-              className={`balloon ${balloon.isPopping ? 'popping' : ''}`}
-              style={{
-                ...styles.balloon,
-                left: `${balloon.x}px`,
-                top: `${balloon.y}px`,
-                width: `${balloon.size}px`,
-                height: `${balloon.size}px`,
-                backgroundColor: balloon.color,
-                fontSize: `${balloon.size * 0.4}px`,
-                animation: balloon.isPopping ? 'pop 0.3s forwards' : 'float 3s ease-in-out infinite',
-              }}
-              onClick={() => {
-                if (isPlaying && !balloon.isPopping) {
-                  popBalloon(balloon.id);
-                  setScore(prev => prev + difficultySettings[difficulty].points);
-                  setTotalTyped(prev => prev + 1);
-                }
-              }}
-            >
-              {balloon.letter}
-            </div>
-          ))}
-
-          {/* Hidden input for focus */}
-          <input
-            ref={inputRef}
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            className="opacity-0 absolute w-0 h-0"
-            autoFocus
-          />
-
-          {/* Start Screen */}
-          {!isPlaying && !gameOver && (
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-purple-100 flex flex-col items-center justify-center rounded-xl">
-              <div className="text-center p-8">
-                <FaGamepad className="text-7xl text-blue-500 mb-6 animate-bounce mx-auto" />
-                <h3 className="text-2xl font-bold mb-4 text-gray-800">
-                  Ready to Test Your Typing Skills?
-                </h3>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                  Select difficulty and time limit, then click Start Game.
-                  Type the letters shown on balloons to pop them!
-                </p>
-                <div className="inline-block bg-white px-4 py-2 rounded-lg shadow">
-                  <span className="text-gray-500">Current Difficulty: </span>
-                  <span className={`font-bold ${
-                    difficulty === 'easy' ? 'text-green-600' :
-                    difficulty === 'medium' ? 'text-yellow-600' : 'text-red-600'
-                  }`}>
-                    {difficulty.toUpperCase()}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Game Over Screen */}
-          {gameOver && (
-            <div className="absolute inset-0 bg-black bg-opacity-80 flex items-center justify-center rounded-xl">
-              <div className="bg-white p-8 rounded-xl text-center max-w-md w-full mx-4">
-                <FaSkull className="text-6xl text-red-500 mx-auto mb-4" />
-                <h2 className="text-3xl font-bold mb-6 text-gray-800">Game Over!</h2>
-                
-                <div className="space-y-4 mb-8">
-                  <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white p-4 rounded-lg">
-                    <div className="text-sm">Final Score</div>
-                    <div className="text-4xl font-bold">{score}</div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-gray-50 p-3 rounded-lg">
-                      <div className="text-lg font-bold text-green-600">
-                        {Math.round(accuracy)}%
-                      </div>
-                      <div className="text-sm text-gray-600">Accuracy</div>
-                    </div>
-                    <div className="bg-gray-50 p-3 rounded-lg">
-                      <div className="text-lg font-bold text-blue-600">
-                        {totalTyped}
-                      </div>
-                      <div className="text-sm text-gray-600">Total Typed</div>
-                    </div>
-                  </div>
-                </div>
-                
-                <button
-                  onClick={() => startGame(60)}
-                  className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-bold text-lg hover:from-blue-700 hover:to-purple-700 transition-all w-full shadow-md"
-                >
-                  Play Again
-                </button>
-              </div>
-            </div>
-          )}
+          <FaShieldAlt /> Bajaj Finance Ltd. • Trusted by Millions
         </div>
-
-        {/* Difficulty Comparison */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-b from-green-50 to-white p-5 rounded-xl border border-green-200">
-            <h4 className="font-bold text-lg mb-3 text-green-700">Easy Mode</h4>
-            <ul className="space-y-2 text-green-600">
-              <li className="flex items-center">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                Slow moving balloons
-              </li>
-              <li className="flex items-center">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                Lowercase letters only (a-z)
-              </li>
-              <li className="flex items-center">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                Larger balloon size
-              </li>
-              <li className="flex items-center">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                1 point per balloon
-              </li>
-            </ul>
-          </div>
-          
-          <div className="bg-gradient-to-b from-yellow-50 to-white p-5 rounded-xl border border-yellow-200">
-            <h4 className="font-bold text-lg mb-3 text-yellow-700">Medium Mode</h4>
-            <ul className="space-y-2 text-yellow-600">
-              <li className="flex items-center">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
-                Medium speed balloons
-              </li>
-              <li className="flex items-center">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
-                Letters + Numbers (A-Z, 0-9)
-              </li>
-              <li className="flex items-center">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
-                Medium balloon size
-              </li>
-              <li className="flex items-center">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
-                2 points per balloon
-              </li>
-            </ul>
-          </div>
-          
-          <div className="bg-gradient-to-b from-red-50 to-white p-5 rounded-xl border border-red-200">
-            <h4 className="font-bold text-lg mb-3 text-red-700">Hard Mode</h4>
-            <ul className="space-y-2 text-red-600">
-              <li className="flex items-center">
-                <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
-                Fast moving balloons
-              </li>
-              <li className="flex items-center">
-                <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
-                All characters + Symbols
-              </li>
-              <li className="flex items-center">
-                <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
-                Smaller balloon size
-              </li>
-              <li className="flex items-center">
-                <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
-                3 points per balloon
-              </li>
-            </ul>
-          </div>
-        </div>
+        <h1 style={styles.heroTitle}>Contact Bajaj Finance</h1>
+        <p style={styles.heroSubtitle}>
+          Have a question about your loan, EMI, or application? Our support team is
+          here to help you 24×7. Reach out through any channel below.
+        </p>
       </div>
 
-      {/* Add CSS for animations */}
-      <style jsx>{`
-        @keyframes gradientAnimation {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        
-        @keyframes float {
-          0%, 100% { transform: translateY(0) rotate(0); }
-          50% { transform: translateY(-10px) rotate(2deg); }
-        }
-        
-        @keyframes pop {
-          0% { transform: scale(1); opacity: 1; }
-          100% { transform: scale(1.5); opacity: 0; }
-        }
-        
-        @keyframes flash {
-          0% { background-color: transparent; }
-          50% { background-color: rgba(255, 0, 0, 0.2); }
-          100% { background-color: transparent; }
-        }
-        
-        .flash-animation {
-          animation: flash 0.2s ease;
-        }
-        
-        .balloon:hover {
-          transform: scale(1.1);
-          box-shadow: 0 6px 20px rgba(0,0,0,0.3) !important;
-        }
-        
-        .balloon::after {
-          content: '';
-          position: absolute;
-          bottom: -15px;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 2px;
-          height: 15px;
-          background: rgba(255, 255, 255, 0.8);
-        }
-      `}</style>
+      {/* ---------- Main Container ---------- */}
+      <div style={styles.container}>
+        {/* Contact Cards */}
+        <div style={styles.cardGrid}>
+          {contactCards.map((card, i) => (
+            <div
+              key={i}
+              style={styles.contactCard}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-6px)';
+                e.currentTarget.style.boxShadow = '0 18px 40px rgba(0,0,0,0.22)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.15)';
+              }}
+            >
+              <div style={styles.iconCircle(card.color)}>{card.icon}</div>
+              <h3 style={styles.cardTitle}>{card.title}</h3>
+              {card.lines.map((line, idx) => (
+                <p key={idx} style={styles.cardLine}>
+                  {line}
+                </p>
+              ))}
+            </div>
+          ))}
+        </div>
+
+        {/* Form + Info */}
+        <h2 style={styles.sectionTitle}>Send Us a Message</h2>
+        <p style={styles.sectionSubtitle}>
+          Fill out the form below and our loan expert will get back to you within 24 hours.
+        </p>
+
+        <div style={styles.mainGrid}>
+          {/* Form */}
+          <div style={styles.formCard}>
+            <h3 style={styles.formTitle}>
+              <FaCommentDots color="#0057B8" /> Enquiry Form
+            </h3>
+            <p style={styles.formSubtitle}>
+              All fields marked with <span style={{ color: '#E63946' }}>*</span> are required.
+            </p>
+
+            {submitted && (
+              <div style={styles.successBox}>
+                <FaCheckCircle size={20} />
+                Thank you! Your enquiry has been submitted successfully. Our team will contact you shortly.
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} noValidate>
+              {/* Full Name */}
+              <div style={styles.formGroup}>
+                <label style={styles.label}>
+                  Full Name <span style={{ color: '#E63946' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  placeholder="e.g. Rahul Sharma"
+                  style={styles.input(!!errors.fullName)}
+                />
+                {errors.fullName && <div style={styles.errorText}>{errors.fullName}</div>}
+              </div>
+
+              {/* Email + Phone */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                  gap: '16px',
+                }}
+              >
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>
+                    Email <span style={{ color: '#E63946' }}>*</span>
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="you@example.com"
+                    style={styles.input(!!errors.email)}
+                  />
+                  {errors.email && <div style={styles.errorText}>{errors.email}</div>}
+                </div>
+
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>
+                    Mobile Number <span style={{ color: '#E63946' }}>*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="10-digit number"
+                    maxLength={10}
+                    style={styles.input(!!errors.phone)}
+                  />
+                  {errors.phone && <div style={styles.errorText}>{errors.phone}</div>}
+                </div>
+              </div>
+
+              {/* Loan Type + City */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                  gap: '16px',
+                }}
+              >
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>
+                    Loan Type <span style={{ color: '#E63946' }}>*</span>
+                  </label>
+                  <select
+                    name="loanType"
+                    value={formData.loanType}
+                    onChange={handleChange}
+                    style={styles.input(!!errors.loanType)}
+                  >
+                    <option value="">Select loan type</option>
+                    <option value="personal">Personal Loan</option>
+                    <option value="home">Home Loan</option>
+                    <option value="business">Business Loan</option>
+                    <option value="gold">Gold Loan</option>
+                    <option value="car">Car Loan</option>
+                    <option value="consumer">Consumer Durable Loan</option>
+                    <option value="other">Other</option>
+                  </select>
+                  {errors.loanType && <div style={styles.errorText}>{errors.loanType}</div>}
+                </div>
+
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>
+                    City <span style={{ color: '#E63946' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleChange}
+                    placeholder="e.g. Mumbai"
+                    style={styles.input(!!errors.city)}
+                  />
+                  {errors.city && <div style={styles.errorText}>{errors.city}</div>}
+                </div>
+              </div>
+
+              {/* Message */}
+              <div style={styles.formGroup}>
+                <label style={styles.label}>
+                  Your Message <span style={{ color: '#E63946' }}>*</span>
+                </label>
+                <textarea
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  placeholder="Tell us how we can help you..."
+                  style={styles.textarea(!!errors.message)}
+                />
+                {errors.message && <div style={styles.errorText}>{errors.message}</div>}
+              </div>
+
+              <button
+                type="submit"
+                style={styles.submitBtn}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 12px 26px rgba(0,87,184,0.45)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,87,184,0.35)';
+                }}
+              >
+                <FaPaperPlane /> Submit Enquiry
+              </button>
+            </form>
+          </div>
+
+          {/* Info Panel */}
+          <div style={styles.infoCard}>
+            <h3 style={styles.infoTitle}>
+              <FaHeadset color="#0057B8" /> Customer Support
+            </h3>
+
+            <div style={styles.infoRow}>
+              <div style={styles.infoIcon}>
+                <FaPhoneAlt />
+              </div>
+              <div>
+                <div style={styles.infoLabel}>Toll-Free Number</div>
+                <div style={styles.infoValue}>1800 103 3538</div>
+                <div style={{ fontSize: '0.82rem', color: '#888' }}>
+                  1800 209 0909 (Alternate)
+                </div>
+              </div>
+            </div>
+
+            <div style={styles.infoRow}>
+              <div style={styles.infoIcon}>
+                <FaMobileAlt />
+              </div>
+              <div>
+                <div style={styles.infoLabel}>WhatsApp Support</div>
+                <div style={styles.infoValue}>+91 98765 43210</div>
+                <div style={{ fontSize: '0.82rem', color: '#888' }}>
+                  Available 24×7
+                </div>
+              </div>
+            </div>
+
+            <div style={styles.infoRow}>
+              <div style={styles.infoIcon}>
+                <FaEnvelope />
+              </div>
+              <div>
+                <div style={styles.infoLabel}>Email</div>
+                <div style={styles.infoValue}>customercare@bajajfinserv.in</div>
+                <div style={{ fontSize: '0.82rem', color: '#888' }}>
+                  wecare@bajajfinserv.in
+                </div>
+              </div>
+            </div>
+
+            <div style={styles.infoRow}>
+              <div style={styles.infoIcon}>
+                <FaClock />
+              </div>
+              <div>
+                <div style={styles.infoLabel}>Working Hours</div>
+                <div style={styles.infoValue}>Mon - Sat: 9:30 AM - 6:30 PM</div>
+                <div style={{ fontSize: '0.82rem', color: '#888' }}>
+                  Sunday: Closed (Online support 24×7)
+                </div>
+              </div>
+            </div>
+
+            <div style={{ ...styles.infoRow, borderBottom: 'none' }}>
+              <div style={styles.infoIcon}>
+                <FaBuilding />
+              </div>
+              <div>
+                <div style={styles.infoLabel}>Registered Office</div>
+                <div style={styles.infoValue}>
+                  Bajaj Finance Ltd., Bajaj Auto Ltd. Complex,
+                  Mumbai-Pune Road, Akurdi, Pune - 411035
+                </div>
+              </div>
+            </div>
+
+            {/* Social */}
+            <div style={styles.socialRow}>
+              <button style={styles.socialBtn('#1877F2')} aria-label="Facebook">
+                <FaFacebookF />
+              </button>
+              <button style={styles.socialBtn('#1DA1F2')} aria-label="Twitter">
+                <FaTwitter />
+              </button>
+              <button style={styles.socialBtn('#0A66C2')} aria-label="LinkedIn">
+                <FaLinkedinIn />
+              </button>
+              <button style={styles.socialBtn('#E1306C')} aria-label="Instagram">
+                <FaInstagram />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Branches */}
+        <h2 style={styles.sectionTitle}>Our Branches</h2>
+        <p style={styles.sectionSubtitle}>
+          Visit your nearest Bajaj Finance branch for personalized assistance.
+        </p>
+
+        <div style={styles.branchGrid}>
+          {branches.map((branch, i) => (
+            <div key={i} style={styles.branchCard}>
+              <div style={styles.branchCity}>
+                <FaMapMarkerAlt color="#0057B8" /> {branch.city}
+              </div>
+              <div style={styles.branchText}>
+                <FaBuilding style={{ marginTop: '4px', flexShrink: 0 }} />
+                <span>{branch.address}</span>
+              </div>
+              <div style={styles.branchText}>
+                <FaPhoneAlt style={{ marginTop: '4px', flexShrink: 0 }} />
+                <span>{branch.phone}</span>
+              </div>
+              <div style={styles.branchText}>
+                <FaClock style={{ marginTop: '4px', flexShrink: 0 }} />
+                <span>{branch.hours}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* FAQ */}
+        <h2 style={styles.sectionTitle}>Frequently Asked Questions</h2>
+        <p style={styles.sectionSubtitle}>
+          Quick answers to the most common queries about Bajaj Finance loans.
+        </p>
+
+        <div style={{ maxWidth: '850px', margin: '0 auto' }}>
+          {faqs.map((faq, i) => (
+            <div key={i} style={styles.faqItem}>
+              <div
+                style={styles.faqQuestion}
+                onClick={() => setOpenFaq(openFaq === i ? null : i)}
+              >
+                <span>{faq.q}</span>
+                <FaChevronDown
+                  style={{
+                    transform: openFaq === i ? 'rotate(180deg)' : 'rotate(0)',
+                    transition: 'transform 0.3s ease',
+                    flexShrink: 0,
+                  }}
+                />
+              </div>
+              {openFaq === i && <div style={styles.faqAnswer}>{faq.a}</div>}
+            </div>
+          ))}
+        </div>
+
+        {/* Footer Note */}
+        <div style={styles.footerNote}>
+          <p>
+            © {new Date().getFullYear()} Bajaj Finance Ltd. All rights reserved. |
+            CIN: L65910PN1987PLC044899
+          </p>
+          <p style={{ marginTop: '6px' }}>
+            This is a demo contact page created for a Bajaj Finance loan website.
+          </p>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default TypingMaster;
+export default Contact;
